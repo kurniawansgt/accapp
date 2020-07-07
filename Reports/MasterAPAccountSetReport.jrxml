@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Master Ar AccountSet" language="groovy" pageWidth="640" pageHeight="740" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accsetcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accsetcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktif" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select	@row:=@row+1 number,ap.cmpnyid,
+	ap.accsetcode,
+	ap.dscription,
+	case when ap.active='1' then "Active" else "Not Active" end active,
+	gl1.accfmttd apafmt, gl1.accdesc apadesc,
+	gl2.accfmttd discfmt, gl2.accdesc discdesc,
+          gl3.accfmttd prefmt, gl3.accdesc predesc,
+          ap.curnccode,
+         concat(if($P{accsetcodefr}="",(select concat(accsetcode,' - ',dscription) from ap_distseth
+                                              order by accsetcode asc limit 1),
+                                      concat($P{accsetcodefr},' - ',ap.dscription)
+                ),
+              '  TO  ',
+              if($P{accsetcodeto}="",(select concat(accsetcode,' - ',dscription) from ap_distseth
+                                              order by accsetcode desc limit 1),
+                                       concat($P{accsetcodeto},' - ',ap.dscription)
+                )
+              )distsettxt
+from ap_accset ap
+left join gl_account gl1
+		on ap.apacccode=gl1.acccode
+left join gl_account gl2
+		on ap.discacccode=gl2.acccode
+left join gl_account gl3
+		on ap.prepayacccode=gl3.acccode
+inner join (select @row:=0) a
+where (ap.accsetcode between
+                    if($P{accsetcodefr}="",(select accsetcode from ap_distseth order by accsetcode asc limit 1),
+                                            ap.dscription)
+                    and
+                    if($P{accsetcodeto}="",(select accsetcode from ap_distseth order by accsetcode desc limit 1),
+                                            ap.dscription)
+      ) AND ap.active=$P{aktif}
+order by accsetcode;]]>
+	</queryString>
+	<field name="number" class="java.lang.Long"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="accsetcode" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="active" class="java.lang.String"/>
+	<field name="apafmt" class="java.lang.String"/>
+	<field name="apadesc" class="java.lang.String"/>
+	<field name="discfmt" class="java.lang.String"/>
+	<field name="discdesc" class="java.lang.String"/>
+	<field name="prefmt" class="java.lang.String"/>
+	<field name="predesc" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="distsettxt" class="java.lang.String"/>
+	<group name="accset">
+		<groupExpression><![CDATA[$F{accsetcode}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="90" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="600" height="20"/>
+				<textElement>
+					<font size="14" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT PAYABLE - MASTER ACCOUNT SET]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="20" width="600" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="478" y="60" width="80" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="558" y="60" width="42" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="86" width="600" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="40" width="150" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT SET        :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="60" width="150" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[STATUS                  :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="150" y="40" width="450" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{distsettxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="60" width="328" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{active}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="110" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="31" width="450" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{active}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="46" width="172" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{apafmt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="61" width="172" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{discfmt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="76" width="172" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{prefmt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="91" width="450" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="150" y="16" width="450" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscription}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="150" y="1" width="450" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accsetcode}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="34" y="1" width="116" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Account set Code      :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="34" y="16" width="116" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Description               :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="33" y="46" width="117" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Payable Control         :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="33" y="61" width="117" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Purchase Discount    :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="34" y="76" width="116" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Prepayment Liability :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="33" y="91" width="117" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Currency Code          :]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="322" y="61" width="278" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{discdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="322" y="46" width="278" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{apadesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="322" y="76" width="278" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{predesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="1" width="33" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{number}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="34" y="31" width="116" height="15"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Status                       :]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy h.mm a">
+				<reportElement x="483" y="4" width="117" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="598" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="150" y="4" width="172" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[PRINTER : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="322" y="4" width="161" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="4" width="150" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[L-03-AP-M-0003-MAPAS]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

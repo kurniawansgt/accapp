@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransaksiGLFinancialReport" language="groovy" pageWidth="595" pageHeight="790" whenNoDataType="BlankPage" columnWidth="553" leftMargin="22" rightMargin="20" topMargin="10" bottomMargin="15" uuid="e4636735-9275-4471-b335-e0f1b439a04f">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="92"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Admin"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jdlrpt" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Financial Report"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.cmpnyid,a.docentry,a.reportname,a.reportdesc,
+       a.lineno,a.rowno,a.columntype,a.levelno,
+       a.txtnoaccount,
+       a.txtdescription,
+       a.openbalance,a.currentbalance,a.endbalance,
+       a.periode,
+       a.grpctln,
+       a.grplnct
+from
+(
+SELECT a.cmpnyid,a.docentry,a.reportname,a.reportdesc,
+            cast(b.lineno as character)lineno,b.rowno,b.columntype,
+            cast(b.levelno as character) levelno,
+            case when b.txtnoaccount<>'' then concat('      ',b.txtnoaccount) else b.txtnoaccount end txtnoaccount,
+            b.txtdescription,
+            b.openbalance,b.currentbalance,b.endbalance,
+            c.nolevel,concat('Periode : ',$P{mop},'/',$P{yop})periode,
+            CONCAT(CAST(b.columntype AS CHARACTER),CAST(b.levelno AS CHAR)) grpctln,
+            CONCAT(CAST(b.levelno AS CHAR),CAST(b.columntype AS CHARACTER)) grplnct
+FROM setting_financial_rpt a
+INNER JOIN op_financial_report b
+          ON b.docentry=a.docentry
+INNER JOIN (SELECT d.docentry,MAX(d.levelno) nolevel FROM op_financial_report d GROUP BY d.docentry) c
+          ON c.docentry=a.docentry
+WHERE b.audituser=$P{operator} and a.reportname=$P{jdlrpt} and b.showdata='Y'
+ORDER BY a.docentry,b.lineno,b.rowno,b.columntype,b.levelno,b.txtnoaccount
+)a
+where (a.txtnoaccount='') or
+      (a.txtnoaccount<>'' and (a.openbalance<>0 or a.currentbalance<>0 or a.endbalance<>0))]]>
+	</queryString>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="docentry" class="java.lang.Integer"/>
+	<field name="reportname" class="java.lang.String"/>
+	<field name="reportdesc" class="java.lang.String"/>
+	<field name="lineno" class="java.lang.String"/>
+	<field name="rowno" class="java.lang.Integer"/>
+	<field name="columntype" class="java.lang.String"/>
+	<field name="levelno" class="java.lang.String"/>
+	<field name="txtnoaccount" class="java.lang.String"/>
+	<field name="txtdescription" class="java.lang.String"/>
+	<field name="openbalance" class="java.lang.Double"/>
+	<field name="currentbalance" class="java.lang.Double"/>
+	<field name="endbalance" class="java.lang.Double"/>
+	<field name="periode" class="java.lang.String"/>
+	<field name="grpctln" class="java.lang.String"/>
+	<field name="grplnct" class="java.lang.String"/>
+	<variable name="currentPage" class="java.lang.Integer" resetType="Page">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="54" splitType="Stretch">
+			<textField>
+				<reportElement uuid="6b031626-60d2-4965-8458-9d15f0f176a6" x="0" y="1" width="550" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7d32cd39-2225-444d-89dc-304a66daeb26" x="0" y="21" width="550" height="16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{reportdesc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a3021c2e-24aa-4f26-8807-be12a3dfc88a" x="0" y="37" width="550" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{periode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="d68f95d0-85bf-49f4-a0f3-3dfa9469e02e" x="0" y="0" width="550" height="14" forecolor="#666666" backcolor="#CCCCCC"/>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="584778a3-9b81-4091-bc5f-4e6a17f09aef" x="0" y="0" width="89" height="14"/>
+				<box>
+					<leftPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[ NOMOR AKUN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0a959580-4a48-4783-90eb-417d4978dcaf" x="89" y="0" width="125" height="14"/>
+				<box>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[ DISKRIPSI]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9d1aba72-af53-422c-87d4-b5ffb897e56b" x="216" y="0" width="110" height="14"/>
+				<box>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[SAMPAI DENGAN BULAN LALU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1987d642-7836-49ae-b031-11d1ab3eac99" x="324" y="0" width="112" height="14"/>
+				<box>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[BULAN INI]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8cbd1781-4f3d-45c6-a8cf-3871fe2ff198" x="436" y="0" width="114" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[SAMPAI DENGAN BULAN INI]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="f1ca726c-867f-47ad-91ad-aa3be8081e29" x="0" y="0" width="89" height="12" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.length()>2]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<leftPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txtnoaccount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="2b017029-dbfe-411f-81fb-4aa30743fa04" x="89" y="0" width="125" height="12" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.length()>0]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txtdescription}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement uuid="b7897c60-fa20-4432-a65f-c82ddb054b93" x="214" y="0" width="110" height="12" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.length()>0]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<leftPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{openbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="d4df61a9-5114-485e-8f82-84ff4b4b34e4" x="324" y="0" width="112" height="12" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.length()>0]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{currentbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="47fc451b-9262-4091-83f5-627502cac3e6" x="436" y="0" width="114" height="12" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.length()>0]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{endbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b3a23e04-7485-4b01-aabe-1242aa428819" x="0" y="0" width="550" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.isEmpty()]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<leftPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{txtdescription}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement uuid="608fd751-06a6-4875-a385-224c09d9008e" x="214" y="0" width="110" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.isEmpty() &&
+$F{columntype}=="3" && $F{levelno}=="1"]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#666666"/>
+					<leftPen lineWidth="1.0" lineColor="#666666"/>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{openbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="b0853bc6-9f58-4fa8-bf75-ba148a1743db" x="324" y="0" width="112" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{txtnoaccount}.isEmpty() &&
+$F{columntype}=="3" && $F{levelno}=="1"]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{currentbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="cc6bcff9-dd0f-462b-9d2d-00dce0138524" x="436" y="0" width="114" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{columntype}=="3" && $F{levelno}=="1"]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="1.0" lineColor="#666666"/>
+					<rightPen lineWidth="1.0" lineColor="#666666"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{endbalance}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="10" splitType="Stretch">
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement uuid="a2f308bb-861f-4456-aeb3-d27ad8a7ad80" x="0" y="0" width="214" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())+" (GLFinancialReport)"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto">
+				<reportElement uuid="b7f09419-4698-44db-8da6-30aacb970de2" mode="Opaque" x="436" y="0" width="114" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{currentPage}+" of "+$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

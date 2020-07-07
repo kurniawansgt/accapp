@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="GLBatchListBatch" language="groovy" pageWidth="1070" pageHeight="612" orientation="Landscape" columnWidth="1050" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" whenResourceMissingType="Empty" isIgnorePagination="true" uuid="fd1c3c2c-a19a-482f-8f01-be66115718bf">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<parameter name="yop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["7"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Admin"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchnofr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchnoto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["999999"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+      gl_jed.btchentry AS Batch
+    , gl_batchlist.btchdesc AS 'Diskripsi Batch'
+    , gl_jed.journalid AS Entry
+    , gl_jeh.jrnldesc AS 'Diskripsi Entri'
+    , CONCAT(CAST(gl_jeh.yop AS CHAR),'/',CAST(gl_jeh.mop AS CHAR)) AS Periode
+    , CONCAT(gl_jeh.srcelgrcode,'-',gl_jeh.srcetypecode) AS SourceCode
+    , gl_jed.transnbr AS Detail
+    , gl_jed.transdesc AS 'Diskripsi Detail'
+    , gl_account.accfmttd AS 'Kode Akun'
+    , gl_account.accdesc 'Diskripsi Akun'
+    , gl_jed.transref AS NoReff
+    , gl_jed.jecomment AS Catatan
+    , gl_jed.transamtdbt AS Debet
+    , gl_jed.transamtcrd AS Kredit
+FROM
+    accapp.gl_jed
+    INNER JOIN accapp.gl_account
+        ON (gl_jed.acccode = gl_account.acccode)
+    INNER JOIN accapp.gl_batchlist
+        ON (gl_jed.btchentry = gl_batchlist.batchid)
+    INNER JOIN accapp.gl_jeh
+        ON (gl_jed.btchentry = gl_jeh.batchid) AND (gl_jed.journalid = gl_jeh.btchentry)
+    WHERE gl_jed.btchentry BETWEEN $P!{batchnofr} AND $P!{batchnoto}
+    ORDER BY gl_jed.btchentry,gl_jed.journalid,gl_jed.transnbr ;]]>
+	</queryString>
+	<field name="Batch" class="java.math.BigDecimal"/>
+	<field name="Diskripsi Batch" class="java.lang.String"/>
+	<field name="Entry" class="java.math.BigDecimal"/>
+	<field name="Diskripsi Entri" class="java.lang.String"/>
+	<field name="Periode" class="java.lang.String"/>
+	<field name="SourceCode" class="java.lang.String"/>
+	<field name="Detail" class="java.math.BigDecimal"/>
+	<field name="Diskripsi Detail" class="java.lang.String"/>
+	<field name="Kode Akun" class="java.lang.String"/>
+	<field name="Diskripsi Akun" class="java.lang.String"/>
+	<field name="NoReff" class="java.lang.String"/>
+	<field name="Catatan" class="java.lang.String"/>
+	<field name="Debet" class="java.math.BigDecimal"/>
+	<field name="Kredit" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement uuid="050c2baa-5424-4ad6-b5a0-64b16b10e477" x="0" y="0" width="308" height="20"/>
+				<textElement markup="none">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="1a021115-cf0e-426e-adc9-e1611f3f32e9" x="0" y="20" width="308" height="20"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Report GL Transaction Listing]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="f9cc65e7-49e5-4a9a-aa1d-406324f26227" x="0" y="40" width="308" height="20"/>
+				<textElement markup="none">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Batch: "+$P{batchnofr}+" s/d "+$P{batchnoto}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="ef7fac04-a0fc-4966-9e39-2efd654933ee" x="0" y="0" width="26" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Batch]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f7e84cff-4674-46db-9bec-e2350b9daef9" x="26" y="0" width="124" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Diskripsi Batch]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="59f1217f-0426-45a3-8591-8b3f4f285c89" x="150" y="0" width="29" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Entry]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="14af8b3a-3f5f-4289-956c-b0e186e874d9" x="179" y="0" width="129" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Diskripsi Entri]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f32e49d1-d369-4376-83e8-3b216daa8ad9" x="308" y="0" width="43" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Periode]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0c9ab676-9c1d-42e3-870c-8b05e234e15d" x="351" y="0" width="38" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Source]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8d4df802-983d-4e88-b363-10dc581892c3" x="389" y="0" width="30" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Detail]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ad78ca0b-d9a7-4640-80ce-eb5709123e05" x="419" y="0" width="110" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Diskripsi Detail]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f482c4f8-e0cd-4000-abe0-5bb2f9cced4d" x="529" y="0" width="106" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Kode Akun]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f59501f4-b649-4e79-8379-36beb1c689e9" x="635" y="0" width="110" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[Diskripsi Akun]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="421301df-ac07-4dad-867e-fc6cd3a80a0f" x="745" y="0" width="140" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[NoReff]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fe664cec-3597-4f15-9835-b65136dd89d7" x="885" y="0" width="82" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Debet]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="50a8eb61-1bef-4c08-8da8-509548149ed1" x="967" y="0" width="82" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Kredit]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="b561321d-6d2f-4161-86ee-3e4be2ee847c" x="26" y="0" width="124" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Diskripsi Batch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e752ae80-8880-4d81-8811-3e62a95c2a93" x="0" y="0" width="26" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Batch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4f6651b0-fe8d-4e72-949c-3634af4b1707" x="150" y="0" width="29" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Entry}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1407db3e-2fe2-46cf-8b84-c28a4c626a1f" x="179" y="0" width="129" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Diskripsi Entri}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9e8ff8b1-99e9-4ae6-96e4-6f7d31b9018d" x="308" y="0" width="43" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Periode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bb6d9a5f-1ab7-4bf3-890d-adddf265bbe2" x="351" y="0" width="38" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{SourceCode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7c9a84e3-28a2-4056-8d1f-c7e51c83c2bd" x="389" y="0" width="30" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Detail}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3ac5382d-079f-4503-bd7d-831266c0cf1a" x="529" y="0" width="106" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Kode Akun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="05e60e1f-2399-4219-b07e-6135293c8fae" x="419" y="0" width="110" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Diskripsi Detail}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="04bdb907-dfd9-4a00-98e9-f33c482cb877" x="635" y="0" width="110" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{Diskripsi Akun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="db056152-a6ba-438a-94e1-3458b1ced866" x="745" y="0" width="140" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{NoReff}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="7d24337c-1c8e-44fa-bc3e-bd30f74e3fdb" x="885" y="0" width="82" height="20"/>
+				<textElement textAlignment="Right">
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Debet}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="b18394ca-1813-4a46-91a2-929aeec1cc81" x="967" y="0" width="82" height="20"/>
+				<textElement textAlignment="Right">
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Kredit}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="22" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement uuid="b7f09419-4698-44db-8da6-30aacb970de2" mode="Opaque" x="0" y="0" width="308" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())+" (GLBatchListing)"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

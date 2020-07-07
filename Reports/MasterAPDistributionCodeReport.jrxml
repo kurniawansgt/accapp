@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Master Ar Distribution Code" language="groovy" pageWidth="640" pageHeight="740" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="distcode" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="distcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="distcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktif" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select @row:=@row+1 number,ap.distcode,ap.cmpnyid,
+       ap.dscription,
+       case when ap.active=1 then "Active" else "Non Active" end active,
+       gl.accfmttd glcode,gl.accdesc gldesc,
+       concat(if($P{distcodefr}="",(select concat(distcode,' - ',dscription) from ap_distcode
+                                              order by distcode asc limit 1),
+                                      concat($P{distcodefr},' - ',ap.dscription)
+                ),
+              '  TO  ',
+              if($P{distcodeto}="",(select concat(distcode,' - ',dscription) from ap_distcode
+                                              order by distcode desc limit 1),
+                                       concat($P{distcodeto},' - ',ap.dscription)
+                )
+       )disttxt
+from ap_distcode ap
+inner join gl_account gl
+      on gl.acccode=ap.glacccode
+inner join (select @row:=0) r
+where (ap.distcode between
+       if($P{distcodefr}="",(select distcode from ap_distcode order by distcode asc limit 1),
+                               $P{distcodefr}
+         )             and
+       if($P{distcodeto}="",(select distcode from ap_distcode order by distcode desc limit 1),
+                               $P{distcodeto}
+                )
+      )
+      and ap.active=$P{aktif}]]>
+	</queryString>
+	<field name="number" class="java.lang.Long"/>
+	<field name="distcode" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="active" class="java.lang.String"/>
+	<field name="glcode" class="java.lang.String"/>
+	<field name="gldesc" class="java.lang.String"/>
+	<field name="disttxt" class="java.lang.String"/>
+	<group name="accset">
+		<groupExpression><![CDATA[$F{distcode}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="80" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="2" width="599" height="20"/>
+				<textElement>
+					<font size="14" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Master AP Distribution Code]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="479" y="58" width="80" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="559" y="58" width="41" height="15"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="75" width="600" height="1"/>
+			</line>
+			<textField>
+				<reportElement x="0" y="22" width="599" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="43" width="69" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[CODE    :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="69" y="43" width="531" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{disttxt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="58" width="69" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[STATUS :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="69" y="58" width="410" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{active}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="85" splitType="Stretch">
+			<textField>
+				<reportElement x="165" y="48" width="435" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{glcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="165" y="17" width="435" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscription}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="165" y="2" width="435" height="15"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{distcode}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="35" y="2" width="130" height="15"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Distribution Code :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="63" width="130" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Description            :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="48" width="130" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[GL Account Code    :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="165" y="32" width="435" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{active}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="2" width="35" height="15"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{number}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="165" y="63" width="435" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{gldesc}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="35" y="32" width="130" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Status                    :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="17" width="130" height="15"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Description            :]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="17" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy h.mm a">
+				<reportElement x="483" y="4" width="117" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="3" width="600" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="165" y="6" width="65" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[PRINTER :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="230" y="6" width="120" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="6" width="153" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[L-03-AP-M-0004-MAPDC]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

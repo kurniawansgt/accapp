@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Transaksi AP Vendor" language="groovy" pageWidth="640" pageHeight="740" orientation="Landscape" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="vendorfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["11ADH01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vendorto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["16ZEH01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="docdatefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011-01-01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="docdateto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012-12-31"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypein" class="java.lang.String">
+		<defaultValueExpression><![CDATA["4"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypecn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["5"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypedn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["6"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypeit" class="java.lang.String">
+		<defaultValueExpression><![CDATA["7"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT  a.vendcode,b.vendname,a.docnum,a.doctype,a.cmpnyid,
+        a.orderno,a.pono,cast(ifnull(left(a.docdate,10),'') as character) docdate,
+        cast(ifnull(left(a.docduedate,10),'') as character) docduedate,
+        cast(concat(a.batchentry) as character)batchentry,a.dayover,
+        a.originalammount,a.JAP,
+        case when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'IN'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'CN'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'DN'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'IN,CN'
+             when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'IN,DN'
+             when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IN,IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'IN,CN,DN'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IN,CN,IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='7' THEN 'IN,CN,DN,IT'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'CN,DN'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'CN,IT'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='7' THEN 'DN,IT'
+             ELSE ''
+       end doctypectk,
+       concat(a.vendcode,a.docnum)vendcodedocnum,
+       concat(a.doctype,a.JAP)doctypegrp
+FROM
+(
+SELECT b.vendcode,b.docnum,b.cmpnyid cmpnyid,
+       CASE WHEN b.doctype='4' THEN "IN"
+	    WHEN b.doctype='6' THEN "DN"
+	    WHEN b.doctype='5' THEN "CN"
+	    WHEN b.doctype='7' THEN "IT"
+       END doctype,
+       b.orderno orderno,b.pono pono,LEFT(docdate,10)docdate,LEFT(b.docduedate,10)docduedate,
+       CONCAT('IN ',b.batchno,'-',b.docentry)batchentry,MID(b.termcode,2,3)dayover,
+       CASE WHEN b.doctype='5' THEN -1*b.doctotalafttaxamt ELSE b.doctotalafttaxamt END originalammount,
+       '1'  JAP
+FROM ap_invh b
+WHERE (b.vendcode BETWEEN $P{vendorfr} AND $P{vendorto})
+       AND (b.docdate BETWEEN $P{docdatefr} AND $P{docdateto})
+       AND (b.doctype=$P{doctypein} or b.doctype=$P{doctypecn}
+            or b.doctype=$P{doctypedn}  or b.doctype=$P{doctypeit})
+
+UNION ALL
+SELECT c.vendcode,c.docnum,b.cmpnyid cmpnyid,
+       CASE WHEN b.doctype='4' THEN "IN"
+	    WHEN b.doctype='6' THEN "DN"
+	    WHEN b.doctype='5' THEN "CN"
+	    WHEN b.doctype='7' THEN "IT"
+              else ''
+       END doctype,
+       ifnull(c.payor,'') orderno,' ' pono,c.docdate,'' docduedate,
+       CONCAT('PY',' ',b.batchno,'-',b.docentry,'-',b.docnum)batchentry,' ' dayover,
+       -1*b.payamt originalammount,'2' JAP
+FROM ap_paybatchlist a
+INNER JOIN ap_payh c
+     ON c.batchno=a.batchno
+INNER JOIN ap_payd b
+      ON b.batchno=c.batchno  AND b.docentry=c.docentry
+where (c.vendcode BETWEEN $P{vendorfr} AND $P{vendorto})
+      AND (b.doctype=$P{doctypein} or b.doctype=$P{doctypecn}
+           or b.doctype=$P{doctypedn}  or b.doctype=$P{doctypeit})
+       AND (c.docdate BETWEEN $P{docdatefr} AND $P{docdateto})
+      and a.batchsts='2'
+
+UNION ALL
+SELECT  c.vendcode,c.docnum,c.cmpnyid cmpnyid,
+        CASE WHEN c.doctype='4' THEN "IN"
+	   WHEN c.doctype='6' THEN "DN"
+ 	   WHEN c.doctype='5' THEN "CN"
+	   WHEN c.doctype='7' THEN "IT"
+        END doctype,
+        ''orderno,' ' pono,c.docdate,'' docduedate,
+        CONCAT('AD ',b.batchno,'-',b.docentry)batchentry,' ' dayover,
+        c.doctotalpayamt originalammount,'3' JAP
+FROM ap_adjbatchlist a
+INNER JOIN ap_adjh c
+     ON c.batchno=a.batchno
+INNER JOIN ap_adjd b
+      ON b.batchno=c.batchno  AND b.docentry=c.docentry
+where (c.vendcode BETWEEN $P{vendorfr} AND $P{vendorto})
+      AND (c.doctype=$P{doctypein} or c.doctype=$P{doctypecn}
+           or c.doctype=$P{doctypedn}  or c.doctype=$P{doctypeit})
+      AND (c.docdate BETWEEN $P{docdatefr} AND $P{docdateto})
+      and a.batchsts='2'
+)a
+LEFT JOIN ap_vendor b
+     ON b.vendcode=a.vendcode
+ORDER BY a.vendcode,a.JAP,a.docnum]]>
+	</queryString>
+	<field name="vendcode" class="java.lang.String"/>
+	<field name="vendname" class="java.lang.String"/>
+	<field name="docnum" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="orderno" class="java.lang.String"/>
+	<field name="pono" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.String"/>
+	<field name="docduedate" class="java.lang.String"/>
+	<field name="batchentry" class="java.lang.String"/>
+	<field name="dayover" class="java.lang.String"/>
+	<field name="originalammount" class="java.math.BigDecimal"/>
+	<field name="JAP" class="java.lang.String"/>
+	<field name="doctypectk" class="java.lang.String"/>
+	<field name="vendcodedocnum" class="java.lang.String"/>
+	<field name="doctypegrp" class="java.lang.String"/>
+	<variable name="curramt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="totoriamt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="totcuramt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup">
+		<variableExpression><![CDATA[$V{curramt}]]></variableExpression>
+	</variable>
+	<variable name="sumvendor" class="java.lang.Double" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{vendcode}]]></variableExpression>
+	</variable>
+	<variable name="suminiamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "IN1" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumcnamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "CN" ) ?  $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumdniamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "DN1" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumitamt" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{doctype}.equals( "IT" ) ?  $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="suminaamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "IN3" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumadaamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "DN3" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumpayamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "IN2" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="gtsum1" class="java.lang.Double">
+		<variableExpression><![CDATA[$V{suminiamt}+$V{sumcnamt}+$V{sumdniamt}+$V{sumitamt}]]></variableExpression>
+	</variable>
+	<variable name="gtsum2" class="java.lang.Double">
+		<variableExpression><![CDATA[$V{suminaamt}+$V{sumadaamt}+$V{sumpayamt}]]></variableExpression>
+	</variable>
+	<group name="vendorgrup">
+		<groupExpression><![CDATA[$F{vendname}]]></groupExpression>
+		<groupFooter>
+			<band height="20">
+				<textField pattern="#,##0;-#,##0">
+					<reportElement isPrintRepeatedValues="false" x="467" y="2" width="71" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{totoriamt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="377" y="2" width="50" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Vendor Total]]></text>
+				</staticText>
+				<line>
+					<reportElement x="378" y="1" width="221" height="1" printWhenGroupChanges="vendorgrup"/>
+				</line>
+				<line>
+					<reportElement x="378" y="12" width="221" height="1" printWhenGroupChanges="vendorgrup"/>
+				</line>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement isPrintRepeatedValues="false" x="538" y="2" width="62" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{totcuramt}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement isPrintRepeatedValues="false" x="427" y="2" width="40" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{vendcode}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="vendcodedocnum">
+		<groupExpression><![CDATA[$F{vendcodedocnum}]]></groupExpression>
+	</group>
+	<group name="doctypegrp">
+		<groupExpression><![CDATA[$F{doctypegrp}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="50" splitType="Stretch">
+			<textField>
+				<reportElement x="1" y="0" width="296" height="10"/>
+				<textElement textAlignment="Left">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="467" y="40" width="71" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Page : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="538" y="40" width="61" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="10" width="34" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Date         :]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="35" y="10" width="262" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="20" width="34" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Vendor     :  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="30" width="34" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Doc. Date :  ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="40" width="34" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Doc. Type : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="35" y="20" width="116" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{vendorfr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="214" y="20" width="83" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{vendorto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="151" y="20" width="63" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="214" y="30" width="83" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{docdateto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="151" y="30" width="63" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="35" y="30" width="116" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{docdatefr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="35" y="40" width="116" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{doctypectk}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="13" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="2" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="123" y="2" width="51" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Doc. Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="174" y="2" width="20" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="247" y="2" width="50" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[PO Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="297" y="2" width="40" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Doc Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="337" y="2" width="40" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Due Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="377" y="2" width="50" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[No Batch-Entry]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="427" y="2" width="40" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Term]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="467" y="2" width="71" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Original Amount]]></text>
+			</staticText>
+			<line>
+				<reportElement x="1" y="1" width="600" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="1" y="12" width="600" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="35" y="2" width="88" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="538" y="2" width="63" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Current Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="194" y="2" width="50" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Order Number]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="123" y="0" width="51" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{docnum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="174" y="0" width="20" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{doctype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="247" y="0" width="50" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{pono}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="337" y="0" width="40" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{docduedate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="377" y="0" width="50" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{batchentry}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="427" y="0" width="40" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dayover}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement x="467" y="0" width="71" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{originalammount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="35" y="0" width="88" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="297" y="0" width="40" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{docdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement x="538" y="0" width="62" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{curramt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="194" y="0" width="53" height="10" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{orderno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="1" y="0" width="34" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendcode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="81" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="1" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isUnderline="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[SUMMARY ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="11" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[1. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="21" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[2. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="11" width="116" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Total :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="21" width="116" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Invoice Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="31" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[3. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="34" y="31" width="117" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Credit Note Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="34" y="41" width="117" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Debit Note Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="41" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[4. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="34" y="51" width="117" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Interest Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="51" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[5. ]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="151" y="11" width="145" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{sumvendor}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" pattern="#,##0;-#,##0">
+				<reportElement x="151" y="21" width="145" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{suminiamt}+$V{suminaamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="151" y="31" width="145" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{sumcnamt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement x="151" y="41" width="145" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{sumdniamt}+$V{sumadaamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="151" y="51" width="145" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{sumitamt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="34" y="61" width="117" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Vendor Payment Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="60" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[6. ]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="151" y="61" width="145" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{sumpayamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="151" y="71" width="145" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{gtsum1}+$V{gtsum2}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="34" y="71" width="117" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Grand Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="70" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[7. ]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

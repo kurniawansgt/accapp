@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterARInterest" pageWidth="640" pageHeight="750" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="intrschrcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["BLN"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="intrschrcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["TAHUN"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="duedaysfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="duedaysto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1825"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="acccodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="acccodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktiffr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktifto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT @ROW:=@ROW+1 Nomor,a.intrschrcode,a.dscription,a.acccode,a.accdesc,a.active,a.duedays,
+             a.status,a.daktive,a.txtacccode,a.acccode,a.cmpnyid,
+             a.txtintrschrcode,a.txtaktif, a.txtduedays,a.tanggalan
+FROM
+(
+  SELECT a.intrschrcode,a.dscription,b.accfmttd acccode,b.accdesc,a.active,a.duedays,a.cmpnyid,
+          CASE WHEN a.active=1 THEN CONCAT('Code : ',(a.intrschrcode),' ',a.dscription,' -  Active ' )
+               ELSE CONCAT('Kode Grup : ',(a.intrschrcode),' ',a.dscription,' - Not Active ') END STATUS,
+          CASE WHEN a.active=1 THEN 'Active' ELSE 'Not Active' END daktive,
+          IF($P{intrschrcodefr}='' AND $P{intrschrcodeto}='','ALL INTEREST CODE',
+             CONCAT(IF($P{intrschrcodefr}='' ,
+                         (SELECT CONCAT(LCASE(intrschrcode),'-',dscription)
+                          FROM ar_interest ORDER BY intrschrcode ASC LIMIT 1),
+                          IFNULL((SELECT CONCAT(intrschrcode,'-',dscription)
+                                  FROM ar_interest WHERE LCASE(intrschrcode)=LCASE($P{intrschrcodefr})
+                                  ORDER BY intrschrcode LIMIT 1),
+                                 $P{intrschrcodefr})
+                            ),
+                          '  TO  ',
+                   	  IF($P{intrschrcodeto}='' ,(SELECT CONCAT(LCASE(intrschrcode),'-',dscription)
+                                                 FROM ar_interest ORDER BY LCASE(intrschrcode) DESC LIMIT 1),
+                                                IFNULL((SELECT CONCAT(intrschrcode,'-',dscription)
+                                                        FROM ar_interest
+                                                        WHERE LCASE(intrschrcode)=LCASE($P{intrschrcodeto})
+                                                        ORDER BY intrschrcode LIMIT 1),
+                                                        $P{intrschrcodeto})
+                            )
+                         )
+            ) txtintrschrcode,
+           IF($P{acccodefr}='' AND $P{acccodeto}='','ALL ACCOUNT CODE',
+              CONCAT(IF($P{acccodefr}='' ,
+                                       (SELECT concat(accfmttd,' ',accdesc) FROM gl_account ORDER BY acccode ASC LIMIT 1),
+                                       (SELECT concat(accfmttd,' ',accdesc) FROM gl_account where accfmttd=$P{acccodefr} ORDER BY acccode  LIMIT 1)
+                    ),
+                  'TO   ',
+     	        IF($P{acccodeto}='' ,
+                                       (SELECT concat(accfmttd,' ',accdesc) FROM gl_account ORDER BY acccode Desc LIMIT 1),
+                                       (SELECT concat(accfmttd,' ',accdesc) FROM gl_account where accfmttd=$P{acccodeto} ORDER BY acccode LIMIT 1)
+                    )
+                 )
+             )txtacccode,
+           concat(if($P{aktiffr}="0",'Not Active','Active'),' To ',if($P{aktifto}="0",'Not Active','Active'))txtaktif,
+           IF($P{duedaysfr}='' AND $P{duedaysto}='','ALL DAYS CYCLE',
+              CONCAT(IF( CAST($P{duedaysfr} AS DECIMAL)=0 ,
+                              (SELECT CONCAT(CAST(duedays AS CHARACTER),' Days')  FROM ar_interest ORDER BY duedays,intrschrcode ASC LIMIT 1),
+                              IFNULL((SELECT CONCAT(CAST(duedays AS CHARACTER),' Days')  FROM ar_interest WHERE duedays= $P{duedaysfr}
+                                           ORDER BY duedays,intrschrcode LIMIT 1),
+                                           CONCAT(CAST($P{duedaysfr} AS CHARACTER),' Days')
+                                        )
+                            ),
+                          ' TO    ',
+                   	 IF(CAST($P{duedaysto}AS DECIMAL)=0 ,
+                            (SELECT CONCAT(CAST(duedays AS CHARACTER),' Days')  FROM ar_interest ORDER BY duedays,intrschrcode DESC LIMIT 1),
+                             IFNULL((SELECT CONCAT(CAST(duedays AS CHARACTER),' Days')  FROM ar_interest WHERE duedays= $P{duedaysto}
+                                         ORDER BY duedays,intrschrcode LIMIT 1),
+                                         CONCAT(CAST($P{duedaysto} AS CHARACTER),' Days')
+                                       )
+                            )
+                         )
+            ) txtduedays,NOW() tanggalan
+  FROM ar_interest a
+  LEFT JOIN gl_account b
+       ON b.acccode=a.acccode
+  WHERE (LCASE(a.intrschrcode) BETWEEN IF($P{intrschrcodefr}='' ,
+                                           (SELECT LCASE(intrschrcode) FROM ar_interest
+                                            ORDER BY intrschrcode ASC LIMIT 1),
+                                            LCASE($P{intrschrcodefr})
+                                           )
+                                AND IF($P{intrschrcodeto}='' ,
+                                       (SELECT LCASE(intrschrcode) FROM ar_interest
+                                        ORDER BY intrschrcode DESC LIMIT 1),
+                                        LCASE($P{intrschrcodeto})
+                                      )
+         )
+         AND
+         (a.duedays BETWEEN IF(CAST($P{duedaysfr} AS DECIMAL)=0 AND $P{duedaysfr}<>'0',
+                               (SELECT duedays FROM ar_interest ORDER BY duedays ASC LIMIT 1),
+                               CAST($P{duedaysfr} AS DECIMAL)
+                              )
+                    AND IF(CAST($P{duedaysto}AS DECIMAL)=0 AND $P{duedaysto}<>'0',
+                           (SELECT duedays FROM ar_interest ORDER BY duedays DESC LIMIT 1),
+                           CAST($P{duedaysto} AS DECIMAL)
+                          )
+         )
+         AND
+         (a.active BETWEEN CAST($P{aktiffr} AS DECIMAL) and  CAST($P{aktifto} AS DECIMAL))
+         AND
+         (a.acccode BETWEEN IF($P{acccodefr}='' ,
+                                                   (SELECT acccode  FROM ar_interest ORDER BY acccode ASC LIMIT 1),
+                                                   concat(left($P{acccodefr},2),mid($P{acccodefr},4,3),mid($P{acccodefr},8,2),mid($P{acccodefr},11,3),right($P{acccodefr},3))
+                                                  )
+                             AND IF($P{acccodeto}='' ,
+                                          (SELECT acccode  FROM ar_interest ORDER BY acccode DESC LIMIT 1),
+                                          concat(left($P{acccodeto},2),mid($P{acccodeto},4,3),mid($P{acccodeto},8,2),mid($P{acccodeto},11,3),right($P{acccodeto},3))
+                                         )
+          )
+ORDER BY a.intrschrcode,a.active,a.acccode,duedays
+)a, (SELECT @ROW:=0) R]]>
+	</queryString>
+	<field name="Nomor" class="java.lang.Long"/>
+	<field name="intrschrcode" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="active" class="java.lang.Integer"/>
+	<field name="duedays" class="java.math.BigDecimal"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="daktive" class="java.lang.String"/>
+	<field name="txtacccode" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="txtintrschrcode" class="java.lang.String"/>
+	<field name="txtaktif" class="java.lang.String"/>
+	<field name="txtduedays" class="java.lang.String"/>
+	<field name="tanggalan" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="110" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="2" width="440" height="15"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AR - INTEREST MASTER REPORT]]></text>
+			</staticText>
+			<textField pattern="###0">
+				<reportElement x="509" y="94" width="92" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="94" width="509" height="15"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAGE :   ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="33" width="86" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Code               :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="48" width="86" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Term               :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="63" width="86" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Status             :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="86" y="64" width="354" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtaktif}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="18" width="440" height="15"/>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="86" y="34" width="354" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtintrschrcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="86" y="49" width="354" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtduedays}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="78" width="86" height="15"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GL. Acc. Code  :]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="86" y="79" width="515" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtacccode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="23" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="5" width="32" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NO.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="32" y="5" width="54" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="86" y="5" width="121" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="440" y="5" width="68" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="508" y="6" width="92" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TERM ( IN DAY)]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="2" width="600" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="21" width="600" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="207" y="0" width="128" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GL ACCOUNT CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="335" y="3" width="105" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="86" y="-1" width="121" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscription}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="32" y="-1" width="54" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{intrschrcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="440" y="0" width="68" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{daktive}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="207" y="0" width="128" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{acccode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="335" y="0" width="105" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0;-###0">
+				<reportElement x="0" y="0" width="32" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{Nomor}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement x="508" y="0" width="92" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{duedays}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="4" width="207" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[L-02-AR-M-0003-MARIMR]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="508" y="4" width="92" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{tanggalan}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="207" y="4" width="233" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[PRINTER  :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="440" y="4" width="68" height="10"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="2" width="600" height="1"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

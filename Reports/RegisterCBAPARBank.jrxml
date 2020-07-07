@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="640" pageHeight="740" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" fontName="Arial" fontSize="26" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<parameter name="nobatchfr" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[110]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nobatchto" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[114]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypefr" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["P"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopfr" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[2010]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopto" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[2011]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mopfr" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mopto" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[12]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT b.yop,b.mop,
+       concat(CAST(b.yop AS CHARACTER),CAST(IFNULL(b.mop,0) AS CHARACTER))yopmop,
+       concat(CAST($P{mopfr} AS CHARACTER),' / ',CAST(IFNULL($P{yopfr},0) AS CHARACTER),'  TO  ',CAST($P{mopto} AS CHARACTER),' / ',CAST(IFNULL($P{yopto},0) AS CHARACTER))yopmpotext,
+       CAST(a.batchno AS CHARACTER) batcno,a.btchdesc,
+       LEFT(a.batchdate,10)batchdate,b.reference,
+       b.misccode,
+       concat(CAST($P{nobatchfr} AS CHARACTER),' TO ',CAST(IFNULL($P{nobatchto},0) AS CHARACTER))nobatchtxt,
+       concat(CAST(a.batchno AS CHARACTER),'/',CAST(IFNULL(b.entryno,0) AS CHARACTER))batchentryno,
+       CAST(IFNULL(b.entryno,0) AS CHARACTER)entryno,
+       CASE WHEN b.entrytype='R' THEN g.custmrname
+            WHEN b.entrytype='P' THEN h.vendname ELSE b.misccode END desccustommer,
+       CASE WHEN a.batchsts='P' THEN 'Posted'
+            WHEN a.batchsts='O' THEN 'Open'
+            WHEN a.batchsts='C' THEN 'Closed' ELSE 'None' END batchsts,
+       a.bankcode,e.bankname,
+       CAST(IFNULL(b.entryno,0) AS CHARACTER)entryno,b.entrytype,
+       CASE WHEN b.entrytype='C' THEN 'Cash Book'
+            WHEN b.entrytype='P' THEN 'Accout Payment'
+            ELSE 'Account Recievable' END   entrytypedesc,
+       b.reference,b.custcheqno,
+       c.acccode,
+       CASE WHEN c.acccode IS NOT NULL THEN f.accfmttd ELSE '' END glakun,
+       f.accdesc,j.bankakun,
+       CASE WHEN c.detailamnt>0 THEN IFNULL(c.detailamnt,0) ELSE 0 END gldebet,
+       CASE WHEN c.detailamnt<0 THEN IFNULL(-1*c.detailamnt,0) ELSE 0 END glcredit,
+       CASE WHEN c.detailamnt<0 THEN IFNULL(-1*c.detailamnt,0) ELSE 0 END bankdebet,
+       CASE WHEN c.detailamnt>0 THEN IFNULL(c.detailamnt,0) ELSE 0 END bankcredit,
+       UCASE(a.cmpnyid)kodeprusahaan
+FROM cb_batchcontrol a
+LEFT JOIN cb_batchh b
+     ON b.batchno=a.batchno AND b.cmpnyid=a.cmpnyid
+LEFT JOIN  cb_batchd c
+     ON c.batchno=a.batchno
+        AND c.entryno=b.entryno AND c.cmpnyid=a.cmpnyid
+LEFT JOIN cb_bank e
+     ON e.bankcode=a.bankcode
+LEFT JOIN gl_account f
+     ON f.cmpnyid=a.cmpnyid AND ( f.acccode=c.acccode OR f.accfmttd=c.acccode )
+LEFT JOIN ar_customer g
+     ON g.custmrcode=b.misccode
+LEFT JOIN ap_vendor h
+     ON h.vendcode=b.misccode
+LEFT JOIN cb_source i
+     ON i.srcecode=c.srcecode
+LEFT JOIN (SELECT a.bankacccode kodebank,b.accfmttd bankakun FROM cb_bank a INNER JOIN gl_account b ON a.bankacccode=b.acccode) j
+     ON j.kodebank=e.bankacccode
+WHERE (a.batchno>=$P{nobatchfr} AND a.batchno<=$P{nobatchto}) AND
+       (
+         CAST(CONCAT(IF(b.yop<10,CONCAT('0',CAST(b.yop AS CHARACTER)),CAST(b.yop AS CHARACTER)),
+              IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),CAST(b.mop AS CHARACTER))) AS DECIMAL)
+         >=
+         CAST(CONCAT(IF($P{yopfr}<10,CONCAT('0',CAST($P{yopfr} AS CHARACTER)),CAST($P{yopfr} AS CHARACTER)),
+              IF($P{mopfr}<10,CONCAT('0',CAST($P{mopfr} AS CHARACTER)),CAST($P{mopfr} AS CHARACTER))) AS DECIMAL)
+         AND
+         CAST(CONCAT(IF(b.yop<10,CONCAT('0',CAST(b.yop AS CHARACTER)),CAST(b.yop AS CHARACTER)),
+              IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),CAST(b.mop AS CHARACTER))) AS DECIMAL)
+         <=
+         CAST(CONCAT(IF($P{yopto}<10,CONCAT('0',CAST($P{yopto} AS CHARACTER)),CAST($P{yopto} AS CHARACTER)),
+              IF($P{mopto}<10,CONCAT('0',CAST($P{mopto} AS CHARACTER)),CAST($P{mopto} AS CHARACTER))) AS DECIMAL)
+        )
+
+      AND (ucase(b.entrytype)=$P{entrytypefr})
+ORDER BY IFNULL(b.yop,0),IFNULL(b.mop,0),a.batchno,b.entryno,b.entrytype]]>
+	</queryString>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="yopmop" class="java.lang.String"/>
+	<field name="yopmpotext" class="java.lang.String"/>
+	<field name="batcno" class="java.lang.String"/>
+	<field name="btchdesc" class="java.lang.String"/>
+	<field name="batchdate" class="java.lang.Object"/>
+	<field name="reference" class="java.lang.String"/>
+	<field name="misccode" class="java.lang.String"/>
+	<field name="nobatchtxt" class="java.lang.String"/>
+	<field name="batchentryno" class="java.lang.String"/>
+	<field name="entryno" class="java.lang.String"/>
+	<field name="desccustommer" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="bankname" class="java.lang.String"/>
+	<field name="entrytype" class="java.lang.String"/>
+	<field name="entrytypedesc" class="java.lang.String"/>
+	<field name="custcheqno" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="glakun" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="bankakun" class="java.lang.String"/>
+	<field name="gldebet" class="java.math.BigDecimal"/>
+	<field name="glcredit" class="java.math.BigDecimal"/>
+	<field name="bankdebet" class="java.math.BigDecimal"/>
+	<field name="bankcredit" class="java.math.BigDecimal"/>
+	<field name="kodeprusahaan" class="java.lang.String"/>
+	<variable name="debetbank" class="java.lang.Integer" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{bankdebet}]]></variableExpression>
+	</variable>
+	<variable name="kreditbank" class="java.lang.Integer" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{bankcredit}]]></variableExpression>
+	</variable>
+	<variable name="debetperbatchentry" class="java.lang.Integer" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebet}+$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="kreditperbatchentry" class="java.lang.Integer" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebet}+$F{glcredit}]]></variableExpression>
+	</variable>
+	<group name="grupyop">
+		<groupExpression><![CDATA[$F{yopmop}]]></groupExpression>
+		<groupHeader>
+			<band height="27">
+				<textField>
+					<reportElement x="44" y="0" width="60" height="13"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$F{yop}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="44" y="13" width="60" height="13"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$F{mop}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="0" width="44" height="13"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<text><![CDATA[Year   :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="13" width="44" height="13"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<text><![CDATA[Month :]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="batchno" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{batchentryno}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band height="26">
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="204" y="1" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{bankakun}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="304" y="1" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{bankname}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="404" y="1" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{debetbank}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="504" y="1" width="96" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{kreditbank}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="404" y="11" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{debetperbatchentry}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="504" y="11" width="96" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$V{kreditperbatchentry}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="304" y="11" width="100" height="10" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Transaction]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="62" splitType="Stretch">
+			<textField>
+				<reportElement style="Column header" x="404" y="44" width="100" height="15" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement style="Column header" x="504" y="44" width="95" height="15" forecolor="#000000"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="304" height="15" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{entrytypefr}.equals('R')]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT RECEIPT -  CASH BOOK BANK REGISTER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="304" height="15" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{entrytypefr}.equals('P')]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT PAYMENT -  CASH BOOK BANK REGISTER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="44" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TERM   :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="44" y="30" width="260" height="15"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{yopmpotext}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="45" width="44" height="15"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="44" y="45" width="260" height="15"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{nobatchtxt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="304" height="15" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{entrytypefr}.equals('C')]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CASH BOOK - CASH BOOK BANK REGISTER]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="15" width="304" height="15"/>
+				<textElement>
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{kodeprusahaan}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="19" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#000000"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="6" width="44" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Batch/Entry No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="44" y="6" width="60" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transaction Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="104" y="6" width="100" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Referece Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="204" y="6" width="100" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="304" y="6" width="100" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="404" y="6" width="100" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Debet]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="504" y="6" width="96" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Credit]]></text>
+			</staticText>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#000000"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="44" y="2" width="60" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{batchdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="104" y="2" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{misccode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="204" y="2" width="100" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{glakun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="304" y="2" width="100" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+				<reportElement x="404" y="2" width="100" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{gldebet}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+				<reportElement x="504" y="2" width="96" height="10" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{glcredit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="0" y="2" width="44" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{batchentryno}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="5" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#000000"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="12" splitType="Stretch">
+			<textField pattern="EEEEE dd MMMMM yyyy HH:mm:ss">
+				<reportElement style="Column header" x="404" y="0" width="197" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="204" y="0" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[PRINTER   :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="304" y="0" width="100" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="204" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<text><![CDATA[T-04-CB-0002-RCBAPARB]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

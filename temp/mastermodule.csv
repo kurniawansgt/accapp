@@ -1,0 +1,9 @@
+id	Module	Description	TanggalEntry	TanggalUpdate	UserId
+252	Exit	Exit		2010-07-14 18:21:03.0	Admin
+254	FrmBarang	Barang		2009-10-30 17:36:58.0	Admin
+1	FrmGenerateTable	Generate Table		2009-10-30 17:36:57.0	Admin
+4	FrmMastergroup	Group		2009-10-30 17:36:58.0	Admin
+253	FrmMastermodule	Module		2009-10-30 17:36:58.0	Admin
+2	FrmMasteruser	User		2009-10-30 17:36:57.0	Admin
+6	LogOut	Log Out		2009-10-30 17:36:58.0	Admin
+3	Reset Password	Reset Password		2009-10-30 17:36:58.0	Admin

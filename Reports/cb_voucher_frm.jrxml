@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="cb_voucher_frm" language="groovy" pageWidth="595" pageHeight="411" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d24eabcc-c312-4dc2-9896-330eff269dfa">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="bankcode_fr" class="java.lang.String"/>
+	<parameter name="bankcode_to" class="java.lang.String"/>
+	<parameter name="voucherdate_fr" class="java.lang.String"/>
+	<parameter name="voucherdate_to" class="java.lang.String"/>
+	<parameter name="voucherno_fr" class="java.lang.String"/>
+	<parameter name="voucherno_to" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT  'PT. CANTIKA PUSPA PESONA'  AS companyname,IF(cv.doctype='P','PAYMENT VOUCHER','RECEIPT VOUCHER') voucher_desc,
+	cv.yop,cv.mop,cv.bankcode,cv.bankname,cv.doctype,cv.entrytype,
+	cv.voucher_no,cv.voucher_date,
+	cv.misccode,cv.dscription,cv.acccode,cv.accdesc,cv.voucher_amt,
+	SUM(cv.dbt_amt) AS dbt_amt,SUM(cv.crt_amt) AS crt_amt,cv.urut,cv.urut1
+FROM
+(
+SELECT 	cv.yop,cv.mop,
+	cv.bankcode,cbb.bankname,cv.doctype,cv.entrytype,
+	cv.reference voucher_no,cv.batchdate voucher_date,
+	cv.misccode,cv.dscription,cbb.bankacccode acccode,ga.accdesc,ABS(cv.totamount) voucher_amt,
+	IF(cv.totamount>0,ABS(cv.totamount),0) dbt_amt,IF(cv.totamount<0,ABS(cv.totamount),0) crt_amt,IF(cv.doctype='R',1,100) urut,1 urut1
+FROM  cb_voucher cv
+INNER JOIN cb_bank cbb ON cbb.bankcode=cv.bankcode
+INNER JOIN gl_account ga ON ga.acccode=cbb.bankacccode
+WHERE cv.reference BETWEEN if($P{voucherno_fr}='',(select min(reference) from cb_voucher),$P{voucherno_fr}) AND if($P{voucherno_to}='',(select max(reference) from cb_voucher),$P{voucherno_to}) AND
+	cv.bankcode BETWEEN if($P{bankcode_fr}='',(select min(bankcode) from cb_bank),$P{bankcode_fr})  AND if($P{bankcode_to}='',(select max(bankcode) from cb_bank),$P{bankcode_to}) AND
+	cv.batchdate BETWEEN if($P{voucherdate_fr}='',(select min(batchdate) from cb_voucher),$P{voucherdate_fr}) AND if($P{voucherdate_to}='',(select max(batchdate) from cb_voucher),$P{voucherdate_to})
+UNION ALL
+SELECT 	cv.yop,cv.mop,
+	cv.bankcode,cbb.bankname,cv.doctype,cv.entrytype,
+	cv.reference voucher_no,cv.batchdate voucher_date,
+	cv.misccode,cv.dscription,cv1.acccode,ga.accdesc,ABS(cv.totamount) voucher_amt,
+	IF(cv1.detailamnt<0,ABS(cv1.detailamnt),0) dbt_amt,IF(cv1.detailamnt>0,ABS(cv1.detailamnt),0) crt_amt,IF(cv1.detailamnt<0,1,2) urut,2 urut1
+FROM  cb_voucher cv
+INNER JOIN cb_voucherd cv1 ON cv.batchno=cv1.batchno AND cv.entryno=cv1.entryno
+INNER JOIN cb_bank cbb ON cbb.bankcode=cv.bankcode
+INNER JOIN gl_account ga ON ga.acccode=cv1.acccode
+WHERE cv.reference BETWEEN if($P{voucherno_fr}='',(select min(reference) from cb_voucher),$P{voucherno_fr}) AND if($P{voucherno_to}='',(select max(reference) from cb_voucher),$P{voucherno_to}) AND
+	cv.bankcode BETWEEN if($P{bankcode_fr}='',(select min(bankcode) from cb_bank),$P{bankcode_fr})  AND if($P{bankcode_to}='',(select max(bankcode) from cb_bank),$P{bankcode_to}) AND
+	cv.batchdate BETWEEN if($P{voucherdate_fr}='',(select min(batchdate) from cb_voucher),$P{voucherdate_fr}) AND if($P{voucherdate_to}='',(select max(batchdate) from cb_voucher),$P{voucherdate_to})
+) AS cv
+GROUP BY cv.voucher_no,cv.acccode,cv.urut,cv.urut1;]]>
+	</queryString>
+	<field name="companyname" class="java.lang.String"/>
+	<field name="voucher_desc" class="java.lang.String"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="bankname" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="entrytype" class="java.lang.String"/>
+	<field name="voucher_no" class="java.lang.String"/>
+	<field name="voucher_date" class="java.sql.Timestamp"/>
+	<field name="misccode" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="voucher_amt" class="java.math.BigDecimal"/>
+	<field name="dbt_amt" class="java.math.BigDecimal"/>
+	<field name="crt_amt" class="java.math.BigDecimal"/>
+	<field name="urut" class="java.lang.Long"/>
+	<field name="urut1" class="java.lang.Long"/>
+	<variable name="dbt_amt" class="java.math.BigDecimal" resetType="Group" resetGroup="voucher_no" calculation="Sum">
+		<variableExpression><![CDATA[$F{dbt_amt}]]></variableExpression>
+	</variable>
+	<variable name="crt_amt" class="java.math.BigDecimal" resetType="Group" resetGroup="voucher_no" calculation="Sum">
+		<variableExpression><![CDATA[$F{crt_amt}]]></variableExpression>
+	</variable>
+	<group name="voucher_no" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{voucher_no}]]></groupExpression>
+		<groupFooter>
+			<band height="138">
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="95" width="138" height="42" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="80" width="138" height="15" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="137" y="80" width="280" height="15" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="417" y="80" width="138" height="15" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="0" y="80" width="138" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Checked By]]></text>
+				</staticText>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="277" y="20" width="278" height="60" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="20" width="277" height="60" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="0" width="393" height="20" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="474" y="0" width="81" height="20" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="393" y="0" width="81" height="20" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="142" y="0" width="247" height="20"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[T   O   T   A   L]]></text>
+				</staticText>
+				<textField pattern="#,##0">
+					<reportElement uuid="126fc729-8b87-4c69-ac0b-9e10f5848352" x="474" y="0" width="78" height="20"/>
+					<box>
+						<pen lineWidth="0.0" lineColor="#666666"/>
+						<topPen lineWidth="0.0" lineColor="#999999"/>
+						<leftPen lineWidth="0.0" lineColor="#666666"/>
+						<bottomPen lineWidth="0.0" lineColor="#666666"/>
+						<rightPen lineWidth="0.0" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{crt_amt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0">
+					<reportElement uuid="d17cae2a-cd77-4768-9ff4-75ead087d163" x="393" y="0" width="78" height="20"/>
+					<box>
+						<pen lineWidth="0.0" lineColor="#666666"/>
+						<topPen lineWidth="0.0" lineColor="#999999"/>
+						<leftPen lineWidth="0.0" lineColor="#666666"/>
+						<bottomPen lineWidth="0.0" lineColor="#666666"/>
+						<rightPen lineWidth="0.0" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{dbt_amt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="12" y="30" width="66" height="35"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Receive From]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="78cb88da-df11-48b6-a014-48a5befc524f" x="94" y="30" width="175" height="35"/>
+					<textElement>
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dscription}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="301" y="30" width="66" height="35"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Receive By :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="424" y="65" width="32" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Date]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="1bbec0df-e227-4b09-8c96-8740489801c7" x="305" y="74" width="100" height="1" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="1bbec0df-e227-4b09-8c96-8740489801c7" x="456" y="73" width="77" height="1" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5"/>
+					</graphicElement>
+				</line>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="137" y="95" width="140" height="42" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="277" y="95" width="140" height="42" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<rectangle>
+					<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="417" y="95" width="138" height="42" forecolor="#999999"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineColor="#999999"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="139" y="80" width="278" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Approved By]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="418" y="80" width="138" height="15"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Passed For Payment]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="7" y="99" width="130" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[FIN:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="147" y="99" width="130" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Departement:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="286" y="99" width="130" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Services:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="425" y="99" width="130" height="15"/>
+					<textElement verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<text><![CDATA[Dir/GM:]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="92" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="393" y="55" width="162" height="37" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="142" y="55" width="251" height="37" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="55" width="142" height="37" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="12" y="55" width="66" height="35"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[SOURCE CODE : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="2bf3bf0d-9996-4860-aa93-efeff70cfbe2" x="148" y="55" width="63" height="35"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[VOUCHER.NO : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4c24af29-0d7c-4804-bb84-f8a4308b8827" x="301" y="55" width="31" height="35"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DATE : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="caefe25e-f762-4339-a36e-082f2ffe2871" x="407" y="55" width="79" height="35"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[COMPANY CODE : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="d015f43d-9d5d-47cb-a17b-ad5cf6128b29" x="211" y="55" width="58" height="35"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{voucher_no}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="11061c81-26d9-44b2-af7b-d49d7c42b3e8" x="332" y="55" width="57" height="35"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{voucher_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="16729bf7-1896-4636-bdea-eed47eefbcbc" x="146" y="2" width="251" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{voucher_desc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="0462b2a3-8664-4de7-a852-b3bfd9e4b50b" x="4" y="35" width="181" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{companyname}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="223" y="27" width="66" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[CASH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="339" y="27" width="66" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<text><![CDATA[BANK]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement uuid="80b8fa33-6ba1-49b4-9879-3f1ea0ee6c35" x="198" y="29" width="20" height="17" forecolor="#999999"/>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="80b8fa33-6ba1-49b4-9879-3f1ea0ee6c35" x="313" y="30" width="20" height="17" forecolor="#999999"/>
+			</rectangle>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="142" y="0" width="251" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="0" width="142" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="142" y="0" width="247" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#999999"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#999999"/>
+					<bottomPen lineWidth="0.0" lineColor="#999999"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="0" y="0" width="95" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#999999"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#999999"/>
+					<bottomPen lineWidth="0.0" lineColor="#999999"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT CODE]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="393" y="0" width="162" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="95" y="0" width="47" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#999999"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#999999"/>
+					<bottomPen lineWidth="0.0" lineColor="#999999"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[EXPENSES]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="474" y="0" width="78" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#999999"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#999999"/>
+					<bottomPen lineWidth="0.0" lineColor="#999999"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[CREDIT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8a607183-3acf-4067-9219-b9447a04a5e8" x="393" y="0" width="78" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#999999"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#999999"/>
+					<bottomPen lineWidth="0.0" lineColor="#999999"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[CREDIT]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="474" y="0" width="81" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="393" y="0" width="81" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<textField pattern="#,##0">
+				<reportElement uuid="126fc729-8b87-4c69-ac0b-9e10f5848352" x="474" y="0" width="78" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#666666"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#666666"/>
+					<bottomPen lineWidth="0.0" lineColor="#666666"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{crt_amt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="d17cae2a-cd77-4768-9ff4-75ead087d163" x="393" y="0" width="78" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#666666"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#666666"/>
+					<bottomPen lineWidth="0.0" lineColor="#666666"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dbt_amt}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="142" y="0" width="251" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement uuid="a81e9271-6f34-47fe-846d-f9372009cdf3" x="0" y="0" width="142" height="20" forecolor="#999999"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement uuid="110373c3-d4d8-4a8f-8705-68ffe82bd60f" x="7" y="0" width="130" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#666666"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#666666"/>
+					<bottomPen lineWidth="0.0" lineColor="#666666"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acccode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="94d912a5-ef15-4fe2-b8a3-28c4341e395c" x="148" y="0" width="241" height="20"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#666666"/>
+					<topPen lineWidth="0.0" lineColor="#999999"/>
+					<leftPen lineWidth="0.0" lineColor="#666666"/>
+					<bottomPen lineWidth="0.0" lineColor="#666666"/>
+					<rightPen lineWidth="0.0" lineColor="#999999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

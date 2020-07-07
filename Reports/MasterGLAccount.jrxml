@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterGlAccount" language="groovy" pageWidth="1000" pageHeight="750" orientation="Landscape" columnWidth="960" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="grpaccountfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="grpaccountto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="acccodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="acccodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="matauang" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Operator"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select @ROW:=@ROW+1 Nomor,ga.acccode account,ga.accdesc description,ga.curnccode kurs,ga.cmpnyid,
+           ga.abrkcode struktur,ga.accfmttd gaformat,
+           case when ga.accbal=1 then 'Debit' else 'Kredit' end normalbalance,
+           case when ga.activew='1' then 'Aktif' else 'Tidak Aktif' end gastatus,
+           case when ga.acctype='B' then 'Balance'
+                    when ga.acctype='I' then 'Income' else 'Retained Earning' end glacctype,
+           concat(ga.accgrpcode,'-',gg.accgrpdesc)grupakun,
+           if($P{grpaccountfr}='' and $P{grpaccountto}='','ALL ACCOUNT GROUP',
+
+           concat(	if($P{grpaccountfr}='' ,(select concat(accgrpcode,'-',accgrpdesc)  from gl_group order by accgrpcode asc limit 1),
+                                                                    (select concat(accgrpcode,'-',accgrpdesc)  from gl_group WHERE accgrpcode= $P{grpaccountfr} limit 1)),
+                                                                    ' S/D ',
+
+     	if($P{grpaccountto}='' ,(select concat(accgrpcode,'-',accgrpdesc)  from gl_group order by accgrpcode desc limit 1),
+                                                                    (select concat(accgrpcode,'-',accgrpdesc)  from gl_group WHERE accgrpcode= $P{grpaccountto} limit 1))
+                        )) txtgrupacc,
+           if($P{grpaccountfr}='' and $P{grpaccountto}='','ALL ACCOUNT CODE',
+
+           concat(	if($P{acccodefr}='' ,(select concat(accfmttd,' ',accdesc)  from gl_account order by acccode asc limit 1),
+                                                                    (select concat(accfmttd ,' ',accdesc)  from gl_account WHERE acccode= $P{acccodefr} limit 1)),
+                                                                    ' S/D ',
+
+     	if($P{acccodeto}='' ,(select concat(accfmttd ,' ',accdesc)  from gl_account order by acccode desc limit 1),
+                                                                    (select concat(accfmttd ,' ',accdesc)  from gl_account WHERE acccode= $P{acccodeto} limit 1))
+                        )) txtacccode,
+            if( $P{matauang}='',(select curnccode from gl_currency order by curnccode asc limit 1),$P{matauang})txtkurs,
+            now() tanggalan
+from gl_account ga
+left join  gl_group gg
+      on gg.accgrpcode=ga.accgrpcode
+INNER JOIN (SELECT @ROW:=0) R
+where
+           (ga.accgrpcode between if($P{grpaccountfr}='' ,(select accgrpcode from gl_group order by accgrpcode asc limit 1),$P{grpaccountfr}) and
+                                                       if($P{grpaccountto}='' ,(select accgrpcode from gl_group order by accgrpcode desc limit 1),$P{grpaccountto})
+            ) and
+           (ga.acccode between if($P{acccodefr}='' ,(select acccode from gl_account order by acccode asc limit 1),$P{acccodefr}) and
+                                                       if($P{acccodeto}='' ,(select acccode from gl_account order by acccode desc limit 1),$P{acccodeto})
+            )and
+           ga.curnccode=(if($P{matauang}='',(select curnccode from gl_currency order by curnccode asc limit 1),$P{matauang}))
+order by ga.acccode]]>
+	</queryString>
+	<field name="Nomor" class="java.lang.Long"/>
+	<field name="account" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="kurs" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="struktur" class="java.lang.String"/>
+	<field name="gaformat" class="java.lang.String"/>
+	<field name="normalbalance" class="java.lang.String"/>
+	<field name="gastatus" class="java.lang.String"/>
+	<field name="glacctype" class="java.lang.String"/>
+	<field name="grupakun" class="java.lang.String"/>
+	<field name="txtgrupacc" class="java.lang.String"/>
+	<field name="txtacccode" class="java.lang.String"/>
+	<field name="txtkurs" class="java.lang.String"/>
+	<field name="tanggalan" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="100" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="961" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GL - ACCOUNT CODE MASTER REPORT]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="163" y="60" width="798" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtacccode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="163" y="80" width="598" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtkurs}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="40" width="163" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT GROUP     :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="60" width="163" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT CODE       :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="80" width="163" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CURRENCY               :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="163" y="40" width="798" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtgrupacc}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="761" y="80" width="99" height="20"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAGE   :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="860" y="80" width="101" height="20"/>
+				<textElement verticalAlignment="Bottom">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="959" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="17" splitType="Stretch">
+			<staticText>
+				<reportElement x="29" y="1" width="134" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="163" y="1" width="319" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="483" y="1" width="41" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[CURR.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="524" y="1" width="69" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[STRUCTURE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="593" y="1" width="100" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[NORMAL BALANCE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="694" y="1" width="67" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="761" y="1" width="99" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[TYPE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="860" y="1" width="101" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT GROUP]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="960" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="16" width="960" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="1" width="29" height="15"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[NO]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="29" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{Nomor}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="163" y="0" width="319" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="483" y="0" width="41" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{kurs}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="524" y="0" width="69" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{struktur}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="29" y="0" width="134" height="15" isPrintWhenDetailOverflows="true"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{gaformat}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="593" y="0" width="101" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{normalbalance}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="694" y="0" width="67" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{gastatus}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="761" y="0" width="99" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{glacctype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="860" y="0" width="101" height="15"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{grupakun}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="23" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="0" width="960" height="1"/>
+			</line>
+			<textField pattern="dd/MM/yyyy HH.mm.ss" isBlankWhenNull="true">
+				<reportElement x="761" y="2" width="200" height="14"/>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{tanggalan}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="1" width="163" height="15"/>
+				<textElement/>
+				<text><![CDATA[L-01-GL-M-0001-GLACMR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="163" y="1" width="430" height="15"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Pencetak :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="594" y="2" width="167" height="14"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

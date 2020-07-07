@@ -1,0 +1,1007 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransaksiAR BatchListInvoice" language="groovy" pageWidth="740" pageHeight="570" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="700" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" isSummaryWithPageHeaderAndFooter="true" uuid="a5cf1cf7-4e97-4637-aa8d-7d1e44ac0147">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="69"/>
+	<parameter name="batchnofr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchnoto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["100"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="transfer" class="java.lang.String">
+		<defaultValueExpression><![CDATA["3"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entried" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="imported" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="listingfor" class="java.lang.String"/>
+	<parameter name="swprint" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status2" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchdatefro" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011-01-01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchdatetoo" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011-12-31"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+	</parameter>
+	<parameter name="status3" class="java.lang.String">
+		<defaultValueExpression><![CDATA["3"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status4" class="java.lang.String">
+		<defaultValueExpression><![CDATA["4"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status5" class="java.lang.String">
+		<defaultValueExpression><![CDATA["5"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select e.cmpnyid,
+	a.batchno, a.batchdesc,
+	a.batchdate,a.inventrcnt,a.totinvamt,
+	case when a.batchtype=1 then "Entried"
+               when a.batchtype=2 then "Imported"
+               when a.batchtype=3 then "Generated"
+	end batchtype,
+	CASE WHEN $P{status1}='1' AND UCASE($P{status2})='R' AND UCASE($P{status4})='D' THEN "Open"
+               WHEN UCASE($P{status1})='O' AND $P{status2}='2' AND UCASE($P{status4})='D' THEN "Posted"
+               WHEN UCASE($P{status1})='O' AND UCASE($P{status2})='R'
+                    AND UCASE($P{status3})='3' AND $P{status4}='D' THEN "Error"
+               WHEN UCASE($P{status1})='O' AND UCASE($P{status2})='R'
+                    AND UCASE($P{status3})='E' AND $P{status4}='4' THEN "Deleted"
+               WHEN $P{status1}='1' AND $P{status2}='2'
+                    AND UCASE($P{status3})='E' AND UCASE($P{status4})='D' THEN "Open,Posted"
+               WHEN $P{status1}='1' AND UCASE($P{status2})='R'
+                    AND UCASE($P{status3})='3' AND UCASE($P{status4})='D' THEN "Open,Error"
+               WHEN $P{status1}='1' AND UCASE($P{status2})='R'
+                    AND UCASE($P{status3})='E' AND UCASE($P{status4})='4' THEN "Open,Deleted"
+               WHEN UCASE($P{status1})='O' AND UCASE($P{status2})='2'
+                    AND $P{status3}='3' AND UCASE($P{status4})='D' THEN "Posted,Error"
+               WHEN ucase($P{status1})='O' AND UCASE($P{status2})='2'
+                    AND UCASE($P{status3})='E' AND UCASE($P{status4})='4' THEN "Posted,Deleted"
+               WHEN ucase($P{status1})='O' AND UCASE($P{status2})='R'
+                    AND UCASE($P{status3})='3' AND UCASE($P{status4})='4' THEN "Eror,Deleted"
+               ELSE "Open, Psted, Error, Deleted"
+          END ctksts,
+	CASE WHEN a.batchsts='1' THEN "Open"
+               WHEN a.batchsts='2' THEN "Posted"
+               WHEN a.batchsts='3' THEN "Error"
+               WHEN a.batchsts='4' THEN "Deleted"
+               ELSE "Open, Posted, Error, Deleted"
+          END batchsts,
+         case when a.readytpost='0' then "Open"
+              when a.readytpost='1' then "ReadyToPost"
+              else "Open & ReadyToPost"
+         end batchrtp,
+         case when b.doctype=4 then "IN"
+	    when b.doctype=6 then "DN"
+	    when b.doctype=5 then "CN"
+	    when b.doctype=7 then "IT"
+         end doctype,
+		b.docentry,
+		b.docnum,
+		b.dscription,
+		b.docdate,
+		b.custmrcode,f.custmrname,
+		b.taxcode taxgroup,
+		b.docduedate duedate,
+                     b.orderno ordernumber,
+		b.termcode,
+		b.yop,
+		b.mop,
+		b.taxcode taxauthoruty,
+		b.doctotalamt netdistamt,
+                     b.doctotalamt,b.discvalueamt,b.taxtotalamt ,
+                     (ifnull(b.doctotalamt,0)-ifnull(b.discvalueamt,0)+ifnull(b.taxtotalamt,0))saldo,
+                     b.discdate,b.discprcnt,
+                     c.distcode,ifnull(g.dscription,'') distcodedesc,
+		c.detailamt,
+		c.taxamt,
+		c.accrevcode,ifnull(d.accfmttd,'') glaccount,
+		c.accrevdscription,
+		case when b.doctype='4' then ifnull(SUM(c.detailamt+c.taxamt),0) else 0  end ttlinv,
+		case when b.doctype='5' then ifnull(SUM(c.detailamt+c.taxamt),0) else 0  end ttldn,
+		case when b.doctype='6' then ifnull(SUM(c.detailamt+c.taxamt),0) else 0  end ttlcn,
+		case when b.doctype='7' then ifnull(SUM(c.detailamt+c.taxamt),0) else 0  end ttlint,
+          CASE WHEN $P{entried}='1' AND UCASE($P{imported})='I' AND UCASE($P{transfer})='T' THEN "Entered"
+               WHEN UCASE($P{entried})='E' AND $P{imported}='2' AND UCASE($P{transfer})='T' THEN "Imported"
+               WHEN UCASE($P{entried})='E' AND UCASE($P{imported})='I' AND $P{transfer}='3' THEN "Generated"
+               WHEN $P{entried}='1' AND UCASE($P{imported})='2' AND UCASE($P{transfer})='T' THEN "Entered,Import"
+               WHEN $P{entried}='1' AND Ucase($P{imported})='I' AND UCASE($P{transfer})='3' THEN "Entered,Generated"
+               WHEN UCASE($P{entried})='E' AND UCASE($P{imported})='2' AND $P{transfer}='3' THEN "Import,Generated"
+               ELSE "Entered,Imported, Genereted"
+          END ctktype
+from ar_invbatchlist a
+	inner join ar_invh b
+		on a.batchno=b.batchno
+	inner join ar_invd c
+		on b.batchno=c.batchno
+		and b.docentry=c.docentry
+	left join gl_account d
+		on  d.acccode=c.accrevcode
+		and d.cmpnyid=a.cmpnyid
+	left join ar_optional e
+		on e.cmpnyid=a.cmpnyid
+          	left join ar_customer f
+		on f.custmrcode=b.custmrcode
+          	left join ar_distcode g
+		on g.distcode=c.distcode
+where (a.batchno BETWEEN $P{batchnofr} and $P{batchnoto})
+		and (left(a.batchdate,10) BETWEEN $P{batchdatefro} and $P{batchdatetoo})
+		and (a.batchtype =$P{entried} or a.batchtype=$P{imported} or a.batchtype=$P{transfer})
+		and (a.batchsts=$P{status1} or a.batchsts=$P{status2} or a.batchsts=$P{status3} or a.batchsts=$P{status4})
+		and (a.readytpost=0 or a.readytpost=1)
+		and (a.swprinted=$P{swprint}  or a.swprinted='1' or a.swprinted='0')
+group by a.batchno,b.docentry,c.linenum
+;]]>
+	</queryString>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="batchno" class="java.lang.Integer"/>
+	<field name="batchdesc" class="java.lang.String"/>
+	<field name="batchdate" class="java.sql.Timestamp"/>
+	<field name="inventrcnt" class="java.lang.Integer"/>
+	<field name="totinvamt" class="java.math.BigDecimal"/>
+	<field name="batchtype" class="java.lang.String"/>
+	<field name="ctksts" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="batchrtp" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="docentry" class="java.lang.Integer"/>
+	<field name="docnum" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="docdate" class="java.sql.Timestamp"/>
+	<field name="custmrcode" class="java.lang.String"/>
+	<field name="custmrname" class="java.lang.String"/>
+	<field name="taxgroup" class="java.lang.String"/>
+	<field name="duedate" class="java.sql.Timestamp"/>
+	<field name="ordernumber" class="java.lang.String"/>
+	<field name="termcode" class="java.lang.String"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="taxauthoruty" class="java.lang.String"/>
+	<field name="netdistamt" class="java.math.BigDecimal"/>
+	<field name="doctotalamt" class="java.math.BigDecimal"/>
+	<field name="discvalueamt" class="java.math.BigDecimal"/>
+	<field name="taxtotalamt" class="java.math.BigDecimal"/>
+	<field name="saldo" class="java.math.BigDecimal"/>
+	<field name="discdate" class="java.sql.Timestamp"/>
+	<field name="discprcnt" class="java.math.BigDecimal"/>
+	<field name="distcode" class="java.lang.String"/>
+	<field name="distcodedesc" class="java.lang.String"/>
+	<field name="detailamt" class="java.math.BigDecimal"/>
+	<field name="taxamt" class="java.math.BigDecimal"/>
+	<field name="accrevcode" class="java.lang.String"/>
+	<field name="glaccount" class="java.lang.String"/>
+	<field name="accrevdscription" class="java.lang.String"/>
+	<field name="ttlinv" class="java.math.BigDecimal"/>
+	<field name="ttldn" class="java.math.BigDecimal"/>
+	<field name="ttlcn" class="java.math.BigDecimal"/>
+	<field name="ttlint" class="java.math.BigDecimal"/>
+	<field name="ctktype" class="java.lang.String"/>
+	<variable name="totalNetDistAmt" class="java.lang.Double" resetType="None">
+		<variableExpression><![CDATA[new Double($F{netdistamt}.doubleValue()+$F{taxtotalamt}.doubleValue())]]></variableExpression>
+	</variable>
+	<variable name="ttlinv" class="java.math.BigDecimal" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttlinv}]]></variableExpression>
+	</variable>
+	<variable name="ttlcn" class="java.math.BigDecimal" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttlcn}]]></variableExpression>
+	</variable>
+	<variable name="ttldn" class="java.math.BigDecimal" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttldn}]]></variableExpression>
+	</variable>
+	<variable name="ttlint" class="java.math.BigDecimal" resetType="Group" resetGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttlint}]]></variableExpression>
+	</variable>
+	<variable name="totalbatchsummary" class="java.math.BigDecimal" resetType="Group" resetGroup="batchno">
+		<variableExpression><![CDATA[$V{ttlinv}+$V{ttlcn}+$V{ttldn}+$V{ttlint}]]></variableExpression>
+	</variable>
+	<variable name="includeprevprintbatch" class="java.lang.String" resetType="None">
+		<variableExpression><![CDATA[$P{swprint}.equals( "0" ) ? "YES" : "NO"]]></variableExpression>
+	</variable>
+	<group name="batchno" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{batchno}]]></groupExpression>
+		<groupHeader>
+			<band height="35">
+				<staticText>
+					<reportElement uuid="be8a5596-9f78-48aa-8900-30f09a8ce382" x="1" y="21" width="75" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Status :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="e4659562-0ff9-4969-96ef-06bf4b2fad65" x="207" y="1" width="100" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Description :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8e8b98c6-5bd6-4104-96ef-67c0582faf4a" x="1" y="11" width="75" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Batch Date :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="494862c3-6741-4dab-865e-0af0bff97203" x="449" y="21" width="149" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="adae41e1-4bb5-4c21-9b6a-bedc5f92347e" x="207" y="11" width="100" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Type :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="70b3382f-56ba-4fbe-aab6-a332a7507e00" x="1" y="1" width="75" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Batch Number :]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement uuid="7b2231fc-2047-4eac-aabb-c8d89f37397a" x="76" y="11" width="131" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchdate}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="3f87c15a-7076-4ab1-aecc-eddab17e35bc" x="76" y="1" width="131" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchno}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="f42a2425-1164-4654-a90c-f08b0a897cf3" x="307" y="1" width="393" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchdesc}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="b2e4cadf-362c-4ca8-8fa6-56a5339e3c39" x="307" y="11" width="141" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchtype}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="75b48d1b-81c7-49b3-b66f-fdfbfb165bef" x="76" y="21" width="131" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchsts}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="00944bcf-a1b9-4f0f-bd92-3a99ed50d2b2" x="599" y="21" width="101" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{totinvamt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="f4425a0f-0e0f-43f6-a5ce-372bbd3d5ee4" x="207" y="21" width="100" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Entry :]]></text>
+				</staticText>
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="7a32fe82-136a-4839-9476-db9e5f1577c8" x="307" y="21" width="141" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{inventrcnt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="726ed737-9455-46c8-8eed-3d11138fa24b" x="449" y="11" width="151" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Ready To Post :]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="1fc98d1b-8613-48bf-9212-919e7a0bfd24" x="600" y="11" width="99" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchrtp}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="65">
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="40e6c117-bc27-412d-9cd6-8d7e77bdb7ec" x="76" y="41" width="229" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{ttlint}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="74b9c6d1-30bc-4525-9cab-2e1326831234" x="1" y="51" width="75" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TOTAL :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="d52533ec-3b5c-46d4-95d3-b68aae722820" x="1" y="1" width="268" height="10"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[...........Batch Summary by Currency.........]]></text>
+				</staticText>
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="50be18f1-22a2-4ab0-a8ca-f2d527ba6e97" x="76" y="11" width="229" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{ttlinv}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="21dbe25c-bc24-4aef-8bcc-08aba1bf4087" x="1" y="21" width="75" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Credit Notes:  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="6b179b73-27ca-4b39-9ac9-f49f3d772561" x="76" y="21" width="229" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{ttlcn}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="5d8cdf70-114a-45ee-8d23-992e35886300" x="1" y="11" width="75" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isItalic="false"/>
+					</textElement>
+					<text><![CDATA[Total Invoice :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="07381b6f-260a-42d8-ae5f-f53d7d39683c" x="1" y="31" width="75" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Debit Notes :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="a394f437-4358-443b-8c1d-711d78f4c590" x="1" y="41" width="75" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Interest :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+					<reportElement uuid="0acb352a-61be-4720-bb68-230949234e45" x="76" y="31" width="229" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{ttldn}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="9e50af4e-7e2b-46f0-b654-9ade5aeabe25" x="76" y="51" width="229" height="10"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totalbatchsummary}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="docentry" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{docentry}]]></groupExpression>
+		<groupHeader>
+			<band height="130">
+				<staticText>
+					<reportElement uuid="17c42c34-6c37-4554-b272-7766afc3af3d" x="1" y="116" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dist. Code ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="cd9d25c4-e0d8-4b43-b9f5-32c9108704f7" x="1" y="51" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Description :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="94acc11e-0c3c-428d-92b2-b928ab0e82be" x="76" y="1" width="42" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{docentry}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="4795926f-05ae-41d6-b64a-4ff2933323bb" x="76" y="51" width="522" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dscription}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="64e50148-7423-4315-bfde-9eb6c5a1d568" x="1" y="1" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Entry No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="7ba33a9e-37c6-410d-a189-9e1ea26f4696" x="1" y="71" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tax Group :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="926986ff-0284-42bd-a9af-a550e4119dcc" x="449" y="21" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{yop}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="5736ab33-e386-402e-a912-d17e5559fbfd" x="307" y="31" width="292" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{termcode}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="29c86287-4024-4626-8b50-60b8aba46ed7" x="207" y="31" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Terms ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="01cab175-ced7-4069-b54f-b173c7b4bd54" x="599" y="116" width="101" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Allocated Tax Amt : ]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement uuid="89e9c92c-8ccb-49a5-acf5-0f7a2b92f22f" x="76" y="31" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{duedate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="3f344d98-c813-4399-8980-a6167fe54e07" x="1" y="21" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Document Date ]]></text>
+				</staticText>
+				<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+					<reportElement uuid="9cf0a935-7b63-46df-ab8c-06366764d2ae" x="76" y="21" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{docdate}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="6680ce61-da40-4ee6-b5e4-65ad6590011f" x="76" y="71" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxgroup}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="239aca88-9ad8-44d4-ae2a-ecd9e1a72174" x="307" y="21" width="142" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{mop}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="704dfafc-e4f4-4ffc-a4ac-f80cec6221e7" x="76" y="11" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{docnum}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="62b2dd24-814e-4467-87de-3e80ffddc486" x="307" y="11" width="141" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{doctype}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="0b44d579-69b0-4d31-b736-3fba9744678a" x="1" y="61" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Order Number]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="acbea2f4-1006-476a-96f6-688b2d334b26" x="207" y="116" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[G/L Account :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="9f750511-7f58-4281-b03c-38132b77abd2" x="207" y="11" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Type ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="386ac683-26ee-494a-aeba-abf6567aad23" x="207" y="41" width="392" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custmrname}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="266c6b8c-6eaa-4bb6-8c8a-4a90d81f3bd2" x="1" y="41" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Custommer]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="94263cc9-4832-4283-bef7-2f7e8d8139cb" x="1" y="11" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Doc. No ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="22a9ff8d-c2a2-4630-8dd7-0194f1013a52" x="76" y="41" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custmrcode}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="bbc30b68-789c-4a46-9566-56bcd19855ce" x="76" y="61" width="522" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ordernumber}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="af667ebc-2882-4ae9-8c74-abcc70581078" x="76" y="116" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dist. Code ]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="0c16ebdd-ff37-4f81-a2ec-7f97d7268fd8" x="1" y="115" width="700" height="1" printWhenGroupChanges="docentry"/>
+				</line>
+				<staticText>
+					<reportElement uuid="a0071c75-0dc2-4677-b573-6a1e38b5aa09" x="449" y="116" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dist. Amt : ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="9e09880e-c94e-4df8-929c-6e8b6ef57050" x="207" y="21" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Periode ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="c1d52c57-1e38-4f88-b527-47818aaa7c23" x="1" y="31" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Due Date ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="78d8ce95-dbba-4f63-9677-459eeaf4f167" x="307" y="116" width="142" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Account Description : ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="6f775d5e-b31b-4093-bd83-d4cc6f5f4471" x="448" y="11" width="151" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Currency]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="428f0df6-fc41-423c-92b9-637c6e61ca4d" x="1" y="81" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Disc. Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="a421f2da-2f74-4dc6-972e-619143ae2a09" x="1" y="91" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Disc. Percent]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="3497d881-5fb8-4ff4-83cf-6c949284a798" x="76" y="81" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{discdate}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="b9a54fc6-92a4-410b-b85d-97d87cc839a6" x="76" y="91" width="131" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{discprcnt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00">
+					<reportElement uuid="cc256e72-dd9a-4c76-a519-b250a2bbfcea" x="598" y="71" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{doctotalamt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00">
+					<reportElement uuid="354a2606-39dd-4320-9863-51d746bf35c6" x="598" y="81" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{discvalueamt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00">
+					<reportElement uuid="47027907-e3d7-4a8c-a987-4a214c510d4a" x="598" y="91" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxtotalamt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00;-#,##0.00">
+					<reportElement uuid="46b89659-f02c-4ce9-b74f-e345542c45ad" x="598" y="101" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{saldo}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="3cfd80fe-61d6-49a1-bf2f-ad1b07245948" x="449" y="71" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Document Amount]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="7c24aca2-92a6-4c05-89ad-38aa514ab160" x="449" y="81" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Discout Amount]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="c6af874d-32c3-4a46-89d3-5e10a4037f8d" x="449" y="91" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tax Ammout]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="d19d63a2-8d26-4c30-8c83-33bc122bd872" x="449" y="101" width="150" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total Ammount]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="f45b61e5-9a60-4a01-a22f-b2c6fb03a725" x="1" y="126" width="700" height="1" printWhenGroupChanges="docentry"/>
+				</line>
+				<staticText>
+					<reportElement uuid="d897504f-d414-44c5-993e-b351723e6915" x="207" y="71" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tax Authority : ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="f3829c1f-b63a-484e-b7ea-066c544e0ec8" x="307" y="71" width="141" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxauthoruty}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="15">
+				<staticText>
+					<reportElement uuid="cb4747b9-176d-4959-99b8-07e8769102e6" x="305" y="2" width="143" height="10" printWhenGroupChanges="docentry"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TOTAL ]]></text>
+				</staticText>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="d722aed9-a3c5-4f0b-995e-e29485e7ef0b" x="449" y="3" width="150" height="10" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totalNetDistAmt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="9792eb32-4938-45b4-90fc-caa21e417758" x="599" y="3" width="101" height="10" printWhenGroupChanges="docentry"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxtotalamt}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement uuid="d3911b81-e8ad-4d28-8d33-47cbbac3eaff" x="305" y="1" width="395" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="85" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="7fd417a8-20e2-4b98-9075-c46fe1ef8e6f" x="1" y="61" width="75" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Having Status Of :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="259bef61-d4ac-41f2-8ac9-756878e12e01" x="1" y="1" width="306" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="1f29577d-fa3e-4f01-9d7e-2362abb6c318" x="1" y="31" width="75" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchdatetoo}!="3000-12-31"]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[From Batch Date :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="c17c5b1b-5517-407e-bdf1-11a787170d75" x="76" y="31" width="50" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchnoto}!="999999999999"]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{batchnofr}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="feabe4ed-65b4-4a21-a344-5f812e77dcdc" x="1" y="31" width="75" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchnoto}!="999999999999"]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[From Batch Number :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0e3e6d8e-d409-4fd2-8109-5d5f0ba6e72c" x="178" y="31" width="29" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchdatetoo}!="3000-12-31"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="729ae685-b702-4cc5-ae60-bc9bf74fd665" x="76" y="31" width="102" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchdatetoo}!="3000-12-31"]]></printWhenExpression>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{batchdatefro}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5f3cbb21-da97-4887-930e-4ba3d9cabcc1" x="142" y="31" width="65" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchnoto}!="999999999999"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{batchnoto}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="c2f8a2ea-e58d-44e1-afae-ac4a3ba6cef0" x="76" y="41" width="231" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{listingfor}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="da57d5c0-c092-420d-b9e0-f851a0a40928" x="76" y="61" width="231" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ctksts}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="a7015774-ad64-43ef-afb7-d5a3ac3d5c0d" x="1" y="51" width="75" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Of Type :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="814a5597-1372-4f55-a2a3-afe9dfc6639b" x="207" y="31" width="100" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchdatetoo}!="3000-12-31"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{batchdatetoo}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="12532626-991e-483a-bfec-7ed04d3710c8" x="76" y="51" width="231" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ctktype}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="db73eda7-103d-48ff-a13b-4cda34c27fc5" x="1" y="41" width="75" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Listing For :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9c70b2ef-87a8-434d-9e7d-d0142b93d4dd" x="1" y="21" width="206" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AR - Batch Listing Invoice]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="269c6749-2327-4c1a-8797-f25e0885f9fc" x="126" y="31" width="16" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{batchnoto}!="999999999999"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[To]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="83fdbfb8-71d4-466a-bfaf-d1d3af5840fd" x="207" y="71" width="100" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{includeprevprintbatch}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="2340bee5-bd4a-4a88-b287-4e93a44701cb" x="1" y="71" width="206" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Include Previously Printed Batches  :  ]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="af637774-32ef-45f7-9c66-aaaec2394f51" x="1" y="83" width="700" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="48ae9cfa-0511-4730-b4f6-83638fc51ff4" mode="Opaque" x="449" y="70" width="150" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement uuid="7843b5ac-7d8f-4278-93aa-2abde1a1e284" mode="Opaque" x="599" y="70" width="101" height="10" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="89422427-f468-4d1e-a702-3a33917b51c7" x="1" y="1" width="75" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{distcode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="784c17e3-b465-4277-8f50-32a303e6fc2e" x="207" y="1" width="100" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accrevcode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="5d801010-a3a9-4395-b2b9-066ddadef3f2" x="307" y="1" width="142" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="docentry"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accrevdscription}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="5ba51e79-bd3b-43f3-bfdf-fd26037c5669" x="448" y="1" width="150" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detailamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="49f25b68-4d90-458c-9a8c-49758854d6b0" x="599" y="1" width="101" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxamt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="51246a43-36ad-4b49-bb99-9f5d63e49a21" x="76" y="1" width="131" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{distcodedesc}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement uuid="4c00a029-00e4-4c52-bd21-b7494a522e10" x="1" y="2" width="206" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

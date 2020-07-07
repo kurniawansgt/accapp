@@ -1,0 +1,5 @@
+[20121016]: Report Gl By Akun
+            Penambahan parameter Segmen Akun
+
+            Entri Jurnal (GL)
+            Tombol Enter untuk kolom berikutnya

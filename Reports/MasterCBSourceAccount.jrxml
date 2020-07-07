@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterCBSourceCode" language="groovy" pageWidth="640" pageHeight="740" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="srccodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="srccodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT CONCAT('SOURCE CODE : ',IF($P{srccodefr}='',
+                                  (SELECT concat(srcecode,'-',dscription)
+                                   FROM cb_source ORDER BY srcecode ASC LIMIT 1),$P{srccodefr}),' TO ',
+                               IF($P{srccodeto}='',(SELECT concat(srcecode,'-',dscription)
+                                                    FROM cb_source ORDER BY srcecode DESC LIMIT 1),
+                                  $P{srccodeto})) jdlbank,a.cmpnyid,
+            a.srcecode,a.dscription,b.accfmttd,b.accdesc,a.taxcode,
+            CASE WHEN a.taxtype=0 THEN 'Inclusive'
+                     WHEN a.taxtype=1 THEN 'Exlusive' ELSE 'Tax' END tipetax,
+            a.amount,IFNULL(a.comments,'') komentar
+FROM cb_source a
+INNER JOIN gl_account b
+          ON b.acccode=a.acccode
+WHERE (a.srcecode BETWEEN IF($P{srccodefr}='',
+                             (SELECT srcecode FROM cb_source ORDER BY srcecode ASC LIMIT 1),$P{srccodefr})
+                  AND IF($P{srccodeto}='',
+                         (SELECT srcecode FROM cb_source ORDER BY srcecode DESC LIMIT 1),$P{srccodeto}))
+ORDER BY a.srcecode]]>
+	</queryString>
+	<field name="jdlbank" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="srcecode" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="taxcode" class="java.lang.String"/>
+	<field name="tipetax" class="java.lang.String"/>
+	<field name="amount" class="java.math.BigDecimal"/>
+	<field name="komentar" class="java.lang.String"/>
+	<variable name="penomoran" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{srcecode}.valueOf( $F{srcecode} )]]></variableExpression>
+	</variable>
+	<group name="grpsrccode">
+		<groupExpression><![CDATA[$F{srcecode}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<pageHeader>
+		<band height="50">
+			<textField>
+				<reportElement mode="Opaque" x="376" y="34" width="170" height="15" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="546" y="34" width="54" height="15" backcolor="#FFFFFF"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="0" width="375" height="15"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CASH BOOK - SOURCE ACCOUNT MASTER REPORTS]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="1" y="33" width="375" height="15"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{jdlbank}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="16" width="375" height="15"/>
+				<textElement>
+					<font isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="19">
+			<line>
+				<reportElement x="0" y="17" width="600" height="1" forecolor="#666666"/>
+			</line>
+			<staticText>
+				<reportElement mode="Opaque" x="34" y="6" width="48" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="82" y="5" width="92" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="174" y="5" width="100" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[ACCOUNT CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="274" y="5" width="102" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="376" y="5" width="45" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[TAX CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="421" y="5" width="55" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[TAX TYPE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="476" y="5" width="78" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[AMMOUNT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="557" y="5" width="42" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[COMMENTS]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="2" width="600" height="1" forecolor="#666666"/>
+			</line>
+			<staticText>
+				<reportElement mode="Opaque" x="1" y="5" width="33" height="10" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[NO]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="34" y="0" width="48" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{srcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="82" y="0" width="92" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscription}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="274" y="0" width="102" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="376" y="0" width="45" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="421" y="0" width="55" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tipetax}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="476" y="0" width="78" height="15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{amount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="554" y="0" width="45" height="15"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{komentar}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="1" y="0" width="33" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{penomoran}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="174" y="0" width="100" height="15"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accfmttd}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="17">
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="476" y="3" width="125" height="13"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="2" width="600" height="1" forecolor="#666666"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="4" width="174" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[M-04-CB-0002-MCBSC]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="174" y="4" width="100" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Printer : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="274" y="4" width="202" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+</jasperReport>

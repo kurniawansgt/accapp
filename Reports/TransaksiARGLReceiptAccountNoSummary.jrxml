@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransaksiARGLReceiptAccountNoSummary" language="groovy" pageWidth="570" pageHeight="740" whenNoDataType="AllSectionsNoDetail" columnWidth="530" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="noseqfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="noseqto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["999999"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nonaktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.BatchNo,a.EntryNo,a.PostSeq,a.LineNo,a.AccountNo,
+       a.YearPeriod,a.Reference,a.Description,a.AccountDesc,
+       SUM(a.Debits)Debits,SUM(a.Credits)Credits,a.BatchEntry,
+       CONCAT('Date : ',CAST(LEFT(NOW(),10) AS CHARACTER)) Datetxt,
+       'Selected Batch Type : Receipt                    Short By : Account Number' selectxt,
+       CONCAT('From Posting Sequence : ',$P{noseqfr},' TO ',$P{noseqto})NoSeqtxt,
+       CONCAT('Printer : ',$P{operator})operator,a.cmpnyid,
+       CONCAT('Account No : ',a.AccountNo)BatchEntrytxt,
+       'Report Total :  ' BatchEntryTotaltxt,
+       concat(a.Reference,a.Description) desctxt
+FROM
+(
+		SELECT a.batchno BatchNo,b.docentry EntryNo,a.glpostngseq PostSeq,
+                           cast(left(b.docdate,10) as character)TransDate,
+			0 LineNo,cb.arclracccode AccountNo,gl.accdesc AccountDesc,
+			CAST(CONCAT(b.yop,'-',b.mop) AS CHARACTER) YearPeriod,b.idrmit Reference,
+			b.payor Description,concat(b.batchno,'-',b.docentry)BatchEntry,
+			b.doctotalamt Debits,0 Credits,a.cmpnyid
+		FROM ar_rcpbatchlist a
+		INNER JOIN ar_rcph b ON b.batchno=a.batchno
+		LEFT JOIN ar_customer d ON b.custmrcode=d.custmrcode
+		LEFT JOIN cb_bank cb ON cb.bankcode=a.bankcode
+                     LEFT JOIN gl_account gl ON gl.acccode=cb.arclracccode
+		WHERE (a.postngseq BETWEEN 0 AND 9999999999)
+		      AND (d.active=$P{aktifsts} OR d.active=$P{nonaktifsts})
+
+		UNION ALL
+		SELECT a.batchno BatchNo,b.docentry EntryNo,a.glpostngseq PostSeq,
+                           cast(left(b.docdate,10) as character)TransDate,
+			c.linenum LineNo,e.aracccode AccountNo,gl.accdesc AccountDesc,
+			CAST(CONCAT(b.yop,'-',b.mop) AS CHAR) YearPeriod,c.docnum reference,
+			b.payor Description,concat(b.batchno,'-',b.docentry)BatchEntry,
+			0 Debits,IF(c.payamt<0,ABS(c.payamt),c.payamt) Credits,a.cmpnyid
+		FROM ar_rcpbatchlist a
+		INNER JOIN ar_rcph b ON b.batchno=a.batchno
+		INNER JOIN ar_rcpd c ON c.batchno=b.batchno AND c.docentry=b.docentry
+		LEFT JOIN ar_customer d ON b.custmrcode=d.custmrcode
+		LEFT JOIN ar_accset e ON e.accsetcode=d.accsetcode
+                     LEFT JOIN gl_account gl ON gl.acccode=e.aracccode
+		WHERE (a.postngseq BETWEEN 0 AND 9999999999)
+		      AND (d.active=$P{aktifsts} OR d.active=$P{nonaktifsts})
+)a
+GROUP BY a.AccountNo
+ORDER BY a.AccountNo]]>
+	</queryString>
+	<field name="BatchNo" class="java.lang.Integer"/>
+	<field name="EntryNo" class="java.lang.Integer"/>
+	<field name="PostSeq" class="java.math.BigDecimal"/>
+	<field name="LineNo" class="java.lang.Long"/>
+	<field name="AccountNo" class="java.lang.String"/>
+	<field name="YearPeriod" class="java.lang.String"/>
+	<field name="Reference" class="java.lang.String"/>
+	<field name="Description" class="java.lang.String"/>
+	<field name="AccountDesc" class="java.lang.String"/>
+	<field name="Debits" class="java.math.BigDecimal"/>
+	<field name="Credits" class="java.math.BigDecimal"/>
+	<field name="BatchEntry" class="java.lang.Object"/>
+	<field name="Datetxt" class="java.lang.String"/>
+	<field name="selectxt" class="java.lang.String"/>
+	<field name="NoSeqtxt" class="java.lang.String"/>
+	<field name="operator" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="BatchEntrytxt" class="java.lang.String"/>
+	<field name="BatchEntryTotaltxt" class="java.lang.String"/>
+	<field name="desctxt" class="java.lang.String"/>
+	<variable name="totdebit" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{Debits}]]></variableExpression>
+	</variable>
+	<variable name="totcredit" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{Credits}]]></variableExpression>
+	</variable>
+	<variable name="totaccountno" class="java.lang.Double" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{AccountNo}]]></variableExpression>
+	</variable>
+	<variable name="totposseq" class="java.lang.Double" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{PostSeq}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="55" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="0" width="274" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="10" width="274" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AR  GL Receipt Transaction Summary ( ARGLRCPTRSANSMR )]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="20" width="273" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Datetxt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="30" width="273" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{selectxt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="40" width="273" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{NoSeqtxt}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="428" y="41" width="99" height="10" isPrintInFirstWholeBand="true" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="328" y="41" width="100" height="10" isPrintInFirstWholeBand="true" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="2" width="99" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="2" width="174" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="274" y="2" width="125" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Debits]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="406" y="2" width="122" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Credits]]></text>
+			</staticText>
+			<line>
+				<reportElement x="1" y="1" width="530" height="1"/>
+			</line>
+			<line>
+				<reportElement x="1" y="12" width="530" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="1" y="1" width="99" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{AccountNo}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="1" width="174" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{AccountDesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement x="274" y="1" width="125" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{Debits}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement x="406" y="1" width="125" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{Credits}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="12" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="1" y="1" width="99" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{operator}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="35">
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="406" y="2" width="125" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totcredit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="274" y="2" width="125" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totdebit}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="101" y="2" width="174" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{BatchEntryTotaltxt}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="274" y="1" width="256" height="1"/>
+			</line>
+			<line>
+				<reportElement x="274" y="12" width="256" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="1" y="2" width="99" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summary :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="12" width="99" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[     1. Account Number  ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="100" y="12" width="174" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totaccountno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="100" y="22" width="174" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{totposseq}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="22" width="99" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[     2. Post Sequence  ]]></text>
+			</staticText>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,2 @@
+server=178.1.1.209
+database=commonacc_test

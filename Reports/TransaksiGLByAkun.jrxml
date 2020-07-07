@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="GLTransaksiByAkun" language="groovy" pageWidth="630" pageHeight="792" whenNoDataType="BlankPage" columnWidth="590" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="15" uuid="a0fb4b74-1aaf-4751-afa7-5dc09a95004b">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<parameter name="acccodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0000000000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="acccodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZZZZZZZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2013"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop2" class="java.lang.String">
+		<defaultValueExpression><![CDATA["01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun1from" class="java.lang.String">
+		<defaultValueExpression><![CDATA["11"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun1to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["99"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun2from" class="java.lang.String">
+		<defaultValueExpression><![CDATA["111"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun2to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["999"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun3from" class="java.lang.String">
+		<defaultValueExpression><![CDATA["00"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun3to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["99"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun4from" class="java.lang.String">
+		<defaultValueExpression><![CDATA["000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun4to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["999"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun5from" class="java.lang.String">
+		<defaultValueExpression><![CDATA["000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun5to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["999"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT d.accfmttd,c.acccode,d.accdesc,
+       b.mop,b.yop,b.jrnldesc,
+       CONCAT(c.srcelgrcode,'-',c.srcetypecode) sourceledger,
+       CAST(LEFT( b.btchentrydate,10) AS CHARACTER) tanggal,
+       CAST(MID(b.btchentrydate,6,2) AS CHARACTER) bulan,
+       c.transref,c.transdesc AS detildesc,
+       a.postngseq posseq,a.readytpost,a.batchsts,
+       b.batchid,b.btchentry,
+       c.transamtdbt debits,c.transamtcrd creditbe,
+       (c.transamtdbt-c.transamtcrd) saldo,
+       CONCAT(c.btchentry,c.journalid,c.transnbr)jedid,(bal.dbtopenbal-bal.crtopenbal) balance
+FROM gl_jed c
+INNER JOIN gl_jeh b       ON c.btchentry=b.batchid AND c.journalid=b.btchentry
+INNER JOIN gl_batchlist a ON b.batchid=a.batchid
+INNER JOIN gl_accountbalance bal ON c.acccode=bal.acccode AND bal.yop=$P{yop} AND bal.mop=($P{mop}-1) AND bal.batchsts='2'
+INNER JOIN gl_account d    ON d.acccode=c.acccode
+WHERE CAST(b.yop AS CHARACTER)=$P{yop} AND (b.mop BETWEEN $P{mop} AND $P{mop2})
+      AND (UPPER( (LEFT(c.acccode,IF(LENGTH($P{akun1from})=0,2,LENGTH($P{akun1from}))) )  BETWEEN $P{akun1from} AND $P{akun1to})
+      AND UPPER((MID(c.acccode,3,IF(LENGTH($P{akun2from})=0,3,LENGTH($P{akun2from})))) BETWEEN $P{akun2from} AND $P{akun2to})
+      AND UPPER((MID(c.acccode,6,IF(LENGTH($P{akun3from})=0,2,LENGTH($P{akun3from})))) BETWEEN $P{akun3from} AND $P{akun3to})
+      AND UPPER((MID(c.acccode,8,IF(LENGTH($P{akun4from})=0,3,LENGTH($P{akun4from})))) BETWEEN $P{akun4from} AND $P{akun4to})
+      AND UPPER((RIGHT(c.acccode,IF(LENGTH($P{akun5from})=0,3,LENGTH($P{akun5from})))) BETWEEN $P{akun5from} AND $P{akun5to})
+      AND UPPER((LEFT(c.acccode,IF(LENGTH($P{akun1to})=0,2,LENGTH($P{akun1to}))))  BETWEEN $P{akun1from} AND $P{akun1to})
+      AND UPPER((MID(c.acccode,3,IF(LENGTH($P{akun2to})=0,3,LENGTH($P{akun2to})))) BETWEEN $P{akun2from} AND $P{akun2to})
+      AND UPPER((MID(c.acccode,6,IF(LENGTH($P{akun3to})=0,2,LENGTH($P{akun3to})))) BETWEEN $P{akun3from} AND $P{akun3to})
+      AND UPPER((MID(c.acccode,8,IF(LENGTH($P{akun4to})=0,3,LENGTH($P{akun4to})))) BETWEEN $P{akun4from} AND $P{akun4to})
+      AND UPPER((RIGHT(c.acccode,IF(LENGTH($P{akun5to})=0,3,LENGTH($P{akun5to})))) BETWEEN $P{akun5from} AND $P{akun5to}))
+ORDER BY c.acccode,b.yop,b.mop]]>
+	</queryString>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="jrnldesc" class="java.lang.String"/>
+	<field name="sourceledger" class="java.lang.String"/>
+	<field name="tanggal" class="java.lang.String"/>
+	<field name="bulan" class="java.lang.String"/>
+	<field name="transref" class="java.lang.String"/>
+	<field name="detildesc" class="java.lang.String"/>
+	<field name="posseq" class="java.math.BigDecimal"/>
+	<field name="readytpost" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="batchid" class="java.math.BigDecimal"/>
+	<field name="btchentry" class="java.math.BigDecimal"/>
+	<field name="debits" class="java.math.BigDecimal"/>
+	<field name="creditbe" class="java.math.BigDecimal"/>
+	<field name="saldo" class="java.math.BigDecimal"/>
+	<field name="jedid" class="java.lang.Object"/>
+	<field name="balance" class="java.math.BigDecimal"/>
+	<variable name="totdebit" class="java.lang.Double" resetType="Group" resetGroup="glaccount" calculation="Sum">
+		<variableExpression><![CDATA[$F{debits}]]></variableExpression>
+	</variable>
+	<variable name="totcredit" class="java.lang.Double" resetType="Group" resetGroup="glaccount" calculation="Sum">
+		<variableExpression><![CDATA[$F{creditbe}]]></variableExpression>
+	</variable>
+	<variable name="subTotalDebit" class="java.math.BigDecimal" resetType="Group" resetGroup="Bulan" calculation="Sum">
+		<variableExpression><![CDATA[$F{debits}]]></variableExpression>
+	</variable>
+	<variable name="subTotalKredit" class="java.math.BigDecimal" resetType="Group" resetGroup="Bulan" calculation="Sum">
+		<variableExpression><![CDATA[$F{creditbe}]]></variableExpression>
+	</variable>
+	<variable name="subnetchange" class="java.math.BigDecimal"/>
+	<variable name="totnetchange" class="java.math.BigDecimal" resetType="Group" resetGroup="glaccount" calculation="Sum">
+		<variableExpression><![CDATA[$V{subnetchange}]]></variableExpression>
+	</variable>
+	<variable name="balance" class="java.math.BigDecimal"/>
+	<variable name="subbalance" class="java.lang.Double"/>
+	<variable name="totbalance" class="java.lang.Double" resetType="Group" resetGroup="glaccount" calculation="Sum">
+		<variableExpression><![CDATA[$V{subbalance}]]></variableExpression>
+	</variable>
+	<variable name="currentPage" class="java.lang.Integer" resetType="Page">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<group name="glaccount" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{accfmttd}]]></groupExpression>
+		<groupHeader>
+			<band height="12">
+				<staticText>
+					<reportElement uuid="b9f35203-49ee-4722-a833-60ae31d70c09" x="1" y="1" width="40" height="11" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+						<paragraph leftIndent="8"/>
+					</textElement>
+					<text><![CDATA[Acc. Code:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true">
+					<reportElement uuid="4ccf854f-cf7b-4023-b9a2-c62fda8c7783" x="41" y="1" width="463" height="11" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{accfmttd}+" "+$F{accdesc}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+					<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" x="504" y="1" width="55" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{balance}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="13">
+				<line>
+					<reportElement uuid="13f3c6d2-6ab0-4d27-bdf6-a7bb0b08f48d" x="349" y="0" width="210" height="1"/>
+				</line>
+				<textField>
+					<reportElement uuid="2742dae1-cbf8-4b4f-9f54-a605fc5b8f60" x="161" y="1" width="188" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["TOTAL AKUN "+$F{accfmttd}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="4081f6d0-5827-4fa0-87e9-d81c8709237f" x="349" y="1" width="50" height="12"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totdebit}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="6b9c3cc0-3e04-43bd-bebf-05a288d619e8" x="399" y="1" width="50" height="12"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totcredit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="false">
+					<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" mode="Transparent" x="449" y="1" width="55" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="SansSerif" size="6" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single" rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totdebit}-$V{totcredit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="false">
+					<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" mode="Transparent" x="504" y="1" width="55" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font fontName="SansSerif" size="6" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+						<paragraph lineSpacing="Single" rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{balance}+($V{totdebit}-$V{totcredit})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Bulan">
+		<groupExpression><![CDATA[$F{mop}]]></groupExpression>
+		<groupFooter>
+			<band height="13">
+				<textField>
+					<reportElement uuid="ff739377-1d0e-405e-a08e-f9da06cf5973" x="161" y="0" width="188" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["TOTAL Bulan "+$F{mop}+" Akun "+$F{accfmttd}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" evaluationTime="Group" evaluationGroup="Bulan" pattern="#,##0;-#,##0">
+					<reportElement uuid="84a23518-bf66-49d6-b613-92dff071b9fa" x="349" y="0" width="50" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{subTotalDebit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" evaluationTime="Group" evaluationGroup="Bulan" pattern="#,##0;-#,##0">
+					<reportElement uuid="84a23518-bf66-49d6-b613-92dff071b9fa" x="399" y="0" width="50" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{subTotalKredit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+					<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" x="449" y="0" width="55" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{subTotalDebit}-$V{subTotalKredit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+					<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" x="504" y="0" width="55" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="false"/>
+						<paragraph rightIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{balance}+($V{totdebit}-$V{totcredit})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<pageHeader>
+		<band height="62" splitType="Stretch">
+			<textField>
+				<reportElement uuid="53958f26-d2ac-4ca1-b02d-5096b4902ecf" x="1" y="1" width="348" height="20"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="10" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="53970419-4d02-48b9-8960-329378c21740" x="1" y="21" width="348" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<text><![CDATA[GL- Account CodeTransaction Listing]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="be63d800-cd02-4129-96f0-20884c8ac693" x="1" y="31" width="119" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<text><![CDATA[Account Code]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="0db1ed17-0e5e-4fa0-81cc-482c3b248301" x="120" y="31" width="229" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{acccodefr}+" - "+$P{acccodeto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5ceb32fd-b64e-470f-ac0c-f543ab2ae921" x="1" y="41" width="119" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<text><![CDATA[Account Segment]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="229e7128-df8f-4fba-b0c1-26a2cb248e55" x="120" y="41" width="229" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{akun1from}+$P{akun2from}+$P{akun3from}+$P{akun4from}+$P{akun5from}+" / "+$P{akun1to}+$P{akun2to}+$P{akun3to}+$P{akun4to}+$P{akun5to}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5ceb32fd-b64e-470f-ac0c-f543ab2ae921" x="1" y="51" width="119" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<text><![CDATA[Periode]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="a7a595c1-014d-4050-84c5-9a71f2285185" x="120" y="51" width="229" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{mop}+"-"+$P{mop2}+" "+$P{yop}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<line>
+				<reportElement uuid="879d4ecc-27d5-481f-bb6b-6134ffe2a12f" x="1" y="0" width="558" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="671f10fa-f2e8-4651-ba98-82341da85961" x="1" y="1" width="40" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<text><![CDATA[Source]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b400a476-1fd7-4208-93d5-c48e8c2fd595" x="81" y="1" width="80" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="4"/>
+				</textElement>
+				<text><![CDATA[Reference]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="15560867-439f-47ac-9dcc-6386f366f184" x="161" y="1" width="150" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="4"/>
+				</textElement>
+				<text><![CDATA[Description]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7e0f3d26-3dfd-4f80-a124-70ac2a8c8605" x="311" y="1" width="20" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Batch No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="08256e50-ab40-492f-8a33-9c9951522db2" x="331" y="1" width="18" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Entry]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d2aa8654-6868-4639-9afa-cebacc059ef8" x="349" y="1" width="50" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Debit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="344e89ae-b23d-40c1-acf5-eefa67e7ac1a" x="399" y="1" width="50" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Credit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="344e89ae-b23d-40c1-acf5-eefa67e7ac1a" x="449" y="1" width="55" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[NetChange]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="344e89ae-b23d-40c1-acf5-eefa67e7ac1a" x="504" y="1" width="55" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<text><![CDATA[Balance]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="3e97b7ae-242e-4e8c-9b7c-69053fd4aee9" x="1" y="14" width="558" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="671f10fa-f2e8-4651-ba98-82341da85961" x="41" y="1" width="40" height="12"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Periode]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement uuid="ff49ff5b-de05-4a33-be46-17373274bf6a" x="1" y="1" width="40" height="11"/>
+				<textElement>
+					<font size="6"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sourceledger}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b7a74aa3-5ac6-46fd-8607-6d03fe53b1b3" x="81" y="1" width="80" height="11"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{transref}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d28ea839-1fe5-4a45-ab6c-4df8d7fa3475" x="161" y="1" width="150" height="11"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detildesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="a51821e1-a64c-47f4-bfbd-19d5fceb6586" x="311" y="1" width="20" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchid}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="5178ee8d-c2d3-4c08-a9db-b937d2e54378" x="331" y="1" width="18" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{btchentry}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="84a23518-bf66-49d6-b613-92dff071b9fa" x="349" y="1" width="50" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{debits}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="f3ce64c3-2523-4063-8992-d02bd48ac2b9" x="399" y="1" width="50" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{creditbe}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ff49ff5b-de05-4a33-be46-17373274bf6a" x="41" y="1" width="40" height="11"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yop}+"/"+$F{mop}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="13" splitType="Stretch">
+			<textField>
+				<reportElement uuid="d5546dab-ebb4-405e-9fc2-28d2b34c086e" x="1" y="1" width="348" height="12"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="6" isBold="true"/>
+					<paragraph leftIndent="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())+" (TransaksiGLByAkun)"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto">
+				<reportElement uuid="289c8f96-cb03-4f6b-8c0a-f3cdbcd60252" mode="Opaque" x="449" y="1" width="110" height="12" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{currentPage}+" of "+$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

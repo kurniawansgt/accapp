@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AP-Buku Ekspedisi" language="groovy" pageWidth="850" pageHeight="570" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="810" leftMargin="20" rightMargin="20" topMargin="10" bottomMargin="10" uuid="5074845a-5552-4dec-b78b-b103674a3be3">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="pageHeader"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.3" value="summary"/>
+	<property name="net.sf.jasperreports.print.keep.full.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.autofit.column" value="true"/>
+	<parameter name="batchnofr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="batchnoto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["100"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[select e.cmpnyid,
+       a.batchno, a.batchdesc,
+       CASE WHEN a.batchsts='1' THEN "Open"
+               WHEN a.batchsts='2' THEN "Posted"
+               WHEN a.batchsts='3' THEN "Error"
+               WHEN a.batchsts='4' THEN "Deleted"
+               ELSE "Open, Posted, Error, Deleted"
+        END batchsts,
+        b.docentry  , b.docnum,
+        b.dscription, cast(left(b.docdate,10) as char) docdate,
+        b.vendcode  , f.vendname,
+	cast(left(b.docduedate,10) as character) duedate,
+	b.distsetcode,
+        b.orderno ordernumber,
+	b.pono Ponumber,
+	b.termcode, b.rate,
+	b.yop, b.mop,
+	b.doctotalamt netdistamt,
+        b.doctotalamt,b.discvalueamt,b.taxtotalamt ,
+        cast(left(b.discdate,10) as char) discdate,b.discprcnt,
+        cast(concat('BATCH:',b.batchno,'-ENTRI:',b.docentry) as char) batchentrytxt,
+        c.dscription detdiskripsi, c.accglcode kodeakun, c.accgldscription akundiskripsi,
+        c.detailamt
+
+from ap_invbatchlist a
+     inner join ap_invh b
+		on a.batchno=b.batchno
+		and (a.batchno BETWEEN $P{batchnofr} and $P{batchnoto})
+	inner join ap_invd c
+		on b.batchno=c.batchno
+		and b.docentry=c.docentry
+	left join gl_account d
+		on  d.acccode=c.accglcode
+		and d.cmpnyid=a.cmpnyid
+	left join ap_optional e
+		on e.cmpnyid=a.cmpnyid
+          	left join ap_vendor f
+		on b.vendcode=f.vendcode
+group by a.batchno,b.docentry,c.linenum;]]>
+	</queryString>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="batchno" class="java.lang.Integer"/>
+	<field name="batchdesc" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="docentry" class="java.lang.Integer"/>
+	<field name="docnum" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.String"/>
+	<field name="vendcode" class="java.lang.String"/>
+	<field name="vendname" class="java.lang.String"/>
+	<field name="duedate" class="java.lang.String"/>
+	<field name="distsetcode" class="java.lang.String"/>
+	<field name="ordernumber" class="java.lang.String"/>
+	<field name="Ponumber" class="java.lang.String"/>
+	<field name="termcode" class="java.lang.String"/>
+	<field name="rate" class="java.math.BigDecimal"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="netdistamt" class="java.math.BigDecimal"/>
+	<field name="doctotalamt" class="java.math.BigDecimal"/>
+	<field name="discvalueamt" class="java.math.BigDecimal"/>
+	<field name="taxtotalamt" class="java.math.BigDecimal"/>
+	<field name="discdate" class="java.lang.String"/>
+	<field name="discprcnt" class="java.math.BigDecimal"/>
+	<field name="batchentrytxt" class="java.lang.String"/>
+	<field name="detdiskripsi" class="java.lang.String"/>
+	<field name="kodeakun" class="java.lang.String"/>
+	<field name="akundiskripsi" class="java.lang.String"/>
+	<field name="detailamt" class="java.math.BigDecimal"/>
+	<variable name="Today" class="java.lang.String">
+		<variableExpression><![CDATA[(new SimpleDateFormat("yyyy/MM/dd")).format(new Date())]]></variableExpression>
+	</variable>
+	<variable name="totalNetDistAmt" class="java.lang.Double" resetType="None">
+		<variableExpression><![CDATA[new Double($F{netdistamt}.doubleValue()+$F{taxtotalamt}.doubleValue())]]></variableExpression>
+	</variable>
+	<variable name="batchsts" class="java.lang.String" resetType="None">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<group name="BatchEntri">
+		<groupExpression><![CDATA[$F{cmpnyid}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="33" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER}==1]]></printWhenExpression>
+			<textField>
+				<reportElement uuid="8b9e9345-a978-4ce5-80ca-386961f04066" x="1" y="0" width="357" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cmpnyid}.toUpperCase()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement uuid="dd50e8c6-9a3e-4427-8a1e-27d3d46f373a" mode="Opaque" x="633" y="20" width="101" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f35ec513-9b6e-4491-8ee7-5ede1f012bb8" mode="Opaque" x="552" y="20" width="107" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="295d50cc-1504-405b-a606-fe408ea1f601" x="1" y="10" width="357" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AP-Buku Ekspedisi - Invoice (TransaksiAPBukuEkspedisi.jrxml)]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="10504fa3-b05c-41bb-8f7e-869d83555191" x="58" y="20" width="300" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{batchnofr}+" s/d "+$P{batchnoto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="ddd75331-c059-43fa-85ca-43d2c98b28b6" x="0" y="20" width="58" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[From Batch Number :]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="12" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER}==1]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="e6a7492c-b884-4b74-af5f-7473ed7e2c8d" x="1" y="0" width="57" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[BATCH/ENTRY]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fd7a7263-172b-4b34-8cbf-da876e437ca3" x="58" y="0" width="40" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[KODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="da56c56a-7567-4015-9fa7-ee9c16be316f" x="98" y="0" width="122" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[NAMA VENDOR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7acfa2ff-d848-4901-b312-a6fd7881aa24" x="220" y="0" width="97" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[NO INVOICE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="33763959-0ef0-4eda-b2df-a971c5ccbd21" x="317" y="0" width="41" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[TANGGAL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c06ad499-e83c-43a9-bae1-608be3b03b77" x="358" y="0" width="48" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[NILAI DOC.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4fb960f6-ddd1-417e-b975-7c0804240e61" x="406" y="0" width="43" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DUEDATE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8bd3e559-3488-4d68-9b84-9dededfff453" x="449" y="0" width="103" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[ORDER NO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6605bc7c-2ba0-49ef-9756-bbd4228320f9" x="552" y="0" width="22" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[MOP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ba85da3a-2756-43d9-81f6-03f63e90976e" x="574" y="0" width="109" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ba85da3a-2756-43d9-81f6-03f63e90976e" x="683" y="0" width="51" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[NOMOR PO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ba85da3a-2756-43d9-81f6-03f63e90976e" x="734" y="0" width="36" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[RATE]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement uuid="8cd8eb3d-76e3-4d37-9883-0a18239828e5" mode="Opaque" x="1" y="0" width="57" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchno}+":"+$F{docentry}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4998167d-fd61-4c8e-99e5-6c30479c8f4c" x="58" y="0" width="40" height="12"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="aff9d8bd-d63b-40a7-a953-2f30762b3ac1" x="98" y="0" width="122" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bb7f5253-0324-4558-9b4d-78c37312957d" x="220" y="0" width="97" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docnum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="16c83efa-6c97-42a3-b228-dfcd174f0e1c" x="317" y="0" width="41" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docdate}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="65938c0e-57ab-45e2-838d-56898eabe297" x="358" y="0" width="48" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctotalamt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b2e2dab3-2585-4beb-a4cf-e7f453359102" x="406" y="0" width="43" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{duedate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fb646a86-a3eb-4e1c-b112-b835ea62c2ed" x="449" y="0" width="103" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ordernumber}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a43bd32f-e1e2-4a8c-b6a3-70f65264127e" x="552" y="0" width="22" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mop}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bdf6aa76-bf85-46c3-bd61-1aeb58eff315" x="574" y="0" width="109" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dscription}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bdf6aa76-bf85-46c3-bd61-1aeb58eff315" x="683" y="0" width="51" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Ponumber}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="bdf6aa76-bf85-46c3-bd61-1aeb58eff315" x="734" y="0" width="36" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8b6bc302-6917-4cb0-99cf-04e48177e6e3" x="1" y="12" width="97" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detdiskripsi}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7802edfb-1d65-44a3-851d-77a65193a608" x="98" y="12" width="122" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{kodeakun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="62b5973f-d207-4451-adf7-3b250c213b56" x="220" y="12" width="138" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{akundiskripsi}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7547796e-854b-4272-9340-4e9114e36e6f" x="358" y="12" width="91" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detailamt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="14" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4d530d3f-d634-4f9d-ad1e-99e2e30c81e6" x="58" y="3" width="130" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{operator}+"/"+$V{Today}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="dde53395-28ba-4d21-98d6-532ebabf83fc" x="1" y="3" width="57" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Dicetak oleh:]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

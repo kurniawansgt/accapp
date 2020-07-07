@@ -1,0 +1,1003 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterAPVendor" pageWidth="640" pageHeight="750" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="73"/>
+	<parameter name="vendcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["44444"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vendcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["yjtyjjjty"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2010"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="active" class="java.lang.Integer">
+		<parameterDescription><![CDATA[not active]]></parameterDescription>
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jenislaporan" class="java.lang.String">
+		<parameterDescription><![CDATA[Detail]]></parameterDescription>
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["operator"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.vendcode,a.vendname,a.active, a.taxcode,a.vendortxt,
+       CASE WHEN a.active=1
+            THEN CONCAT('Vendor Code : ',a.vendcode,' ',a.vendname,' - Active ' )
+            ELSE CONCAT('Vendor Code : ',a.vendcode,' ',a.vendname,' - Not Active  ') END STATUS,
+       CASE WHEN a.active=1 THEN 'Active' ELSE 'Not Active' END daktive,
+       a.grpcode,a.dscriptiongrp,a.bankcode,
+       a.curnccode,a.cmpnyid,a.notes,
+       MAX(a.AKantor)AKantor,MAX(a.AKirim)AKirim,MAX(a.ATagih)Atagih,
+       MAX(a.LandLine)LandLine,MAX(a.Mobile)Mobile,MAX(a.Fax)Fax,
+       MAX(a.Email)Email,MAX(a.Web)Web,
+       a.distcode,a.descdistcode,a.accfmttd,
+       IFNULL(b.yop,0)yop,IFNULL(b.mop,0)mop,
+       IFNULL(b.invamt,0)invamt,IFNULL(b.invcnt,0)invcnt,
+       IFNULL(b.payamt,0)payamt,IFNULL(b.paycnt,0)paycnt,
+       IFNULL(b.discamt,0)discamt,IFNULL(b.disccnt,0)disccnt,
+       IFNULL(b.discamt,0)discamt,IFNULL(b.disccnt,0)disccnt,
+       IFNULL(b.dnamt,0)dnamt,IFNULL(b.dncnt,0)dncnt,
+       IFNULL(b.cnamt,0)cnamt,IFNULL(b.cncnt,0)cncnt,
+       IFNULL(b.adjamt,0)adjamt,IFNULL(b.adjcnt,0)adjcnt,
+       IFNULL(b.wroffamt,0)wroffamt,IFNULL(b.wroffcnt,0)wroffcnt,
+       IFNULL(b.inttamt,0)inttamt,IFNULL(b.inttcnt,0)inttcnt,
+       IFNULL(b.rtrchckamt,0)rtrchckamt,IFNULL(b.rtrchckcnt,0)rtrchckcnt,
+       IFNULL(b.invpaidamt,0)invpaidamt,IFNULL(b.invpaidcnt,0)invpaidcnt,
+       IFNULL(c.yop,0)gyop,IFNULL(c.mop,0)gmop,
+       IFNULL(c.invamt,0)ginvamt,IFNULL(c.invcnt,0)ginvcnt,
+       IFNULL(c.payamt,0)gpayamt,IFNULL(c.paycnt,0)gpaycnt,
+       IFNULL(c.discamt,0)gdiscamt,IFNULL(c.disccnt,0)gdisccnt,
+       IFNULL(c.discamt,0)gdiscamt,IFNULL(c.disccnt,0)gdisccnt,
+       IFNULL(c.dnamt,0)gdnamt,IFNULL(c.dncnt,0)gdncnt,
+       IFNULL(c.cnamt,0)gcnamt,IFNULL(c.cncnt,0)gcncnt,
+       IFNULL(c.adjamt,0)gadjamt,IFNULL(c.adjcnt,0)gadjcnt,
+       IFNULL(c.wroffamt,0)gwroffamt,IFNULL(c.wroffcnt,0)gwroffcnt,
+       IFNULL(c.inttamt,0)ginttamt,IFNULL(c.inttcnt,0)ginttcnt,
+       IFNULL(c.rtrchckamt,0)grtrchckamt,IFNULL(c.rtrchckcnt,0)grtrchckcnt,
+       IFNULL(c.invpaidamt,0)ginvpaidamt,IFNULL(c.invpaidcnt,0)ginvpaidant,
+       now() tanggalan
+FROM
+(
+SELECT a.vendcode,a.vendname,a.notes,a.active,a.bankcode,a.curnccode,
+       a.termcode,a.taxcode,
+       a.cmpnyid,a.grpcode,h.dscription dscriptiongrp,
+       concat(
+        if($P{vendcodefr}='','ALL VENDOR',
+                              CONCAT($P{vendcodefr},' - ',(select vendname from ap_vendor
+                                                           WHERE vendcode=$P{vendcodefr}
+                                                           order by vendcode limit 1)
+                                    )
+          ),
+        ' TO ',
+        if($P{vendcodeto}='','ALL VENDOR',
+                              CONCAT($P{vendcodeto},' - ',(select vendname from ap_vendor
+                                                           WHERE vendcode=$P{vendcodeto}
+                                                           order by vendcode limit 1)
+                                    )
+          )
+       )vendortxt,
+       CASE WHEN c.addrtypecode='01' THEN CONCAT(c.address,'',c.city,'',c.state,'',c.zipcode) ELSE '' END AKantor,
+       CASE WHEN c.addrtypecode='02' THEN CONCAT(c.address,'',c.city,'',c.state,'',c.zipcode) ELSE '' END AKirim,
+       CASE WHEN c.addrtypecode='03' THEN CONCAT(c.address,'',c.city,'',c.state,'',c.zipcode) ELSE '' END ATagih,
+       CASE WHEN e.phonetypecode='01' THEN e.phone ELSE '' END LandLine,
+       CASE WHEN e.phonetypecode='02' THEN e.phone ELSE '' END Mobile,
+       CASE WHEN e.phonetypecode='03' THEN e.phone ELSE '' END Fax,
+       CASE WHEN e.phonetypecode='04' THEN e.phone ELSE '' END Email,
+       CASE WHEN e.phonetypecode='05' THEN e.phone ELSE '' END Web,
+       a.distcode,i.dscription descdistcode,a.glacccode,b.accfmttd
+FROM ap_vendor a
+LEFT JOIN gl_account b
+     ON b.acccode=a.glacccode
+LEFT JOIN op_address c
+     ON c.ownercode=a.vendcode
+LEFT JOIN op_addrtype d
+     ON d.addrtypecode=c.addrtypecode
+LEFT JOIN op_phone e
+     ON e.ownercode=c.ownercode AND e.addrcode=c.addrcode
+        AND e.addrtypecode=d.addrtypecode
+LEFT JOIN op_phonetype f
+     ON f.phonetypecode=e.phonetypecode
+LEFT JOIN ap_vendgrp h
+     ON h.grpcode=a.grpcode
+LEFT JOIN ap_distcode i
+     ON i.distcode=a.distcode
+WHERE
+      (UCASE(a.vendcode) BETWEEN
+          if($P{vendcodefr}='',
+             (select vendcode from ap_vendor order by vendcode asc limit 1),$P{vendcodefr}
+             )
+                         and
+          if($P{vendcodeto}='',
+             (select vendcode from ap_vendor order by vendcode desc limit 1),$P{vendcodeto}
+             )
+      )
+      AND a.active=$P{active}
+      AND (ucase(a.grpcode)>='' AND ucase(a.grpcode)<='zzzzz')
+ORDER BY a.vendcode,a.active,a.grpcode,a.distcode
+)a
+LEFT JOIN ap_vendorsts b
+     ON b.vendcode=a.vendcode
+LEFT JOIN ap_vendgrpsts c
+     ON c.grpcode=a.grpcode
+where b.yop between cast($P{yopfr} as decimal) and cast($P{yopto} as decimal)
+GROUP BY a.vendcode,a.active,a.grpcode,a.distcode
+ORDER BY a.vendcode,a.active,a.grpcode,a.distcode]]>
+	</queryString>
+	<field name="vendcode" class="java.lang.String"/>
+	<field name="vendname" class="java.lang.String"/>
+	<field name="active" class="java.lang.Integer"/>
+	<field name="taxcode" class="java.lang.String"/>
+	<field name="vendortxt" class="java.lang.String"/>
+	<field name="STATUS" class="java.lang.String"/>
+	<field name="daktive" class="java.lang.String"/>
+	<field name="grpcode" class="java.lang.String"/>
+	<field name="dscriptiongrp" class="java.lang.String"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="notes" class="java.lang.String"/>
+	<field name="AKantor" class="java.lang.String"/>
+	<field name="AKirim" class="java.lang.String"/>
+	<field name="Atagih" class="java.lang.String"/>
+	<field name="LandLine" class="java.lang.String"/>
+	<field name="Mobile" class="java.lang.String"/>
+	<field name="Fax" class="java.lang.String"/>
+	<field name="Email" class="java.lang.String"/>
+	<field name="Web" class="java.lang.String"/>
+	<field name="distcode" class="java.lang.String"/>
+	<field name="descdistcode" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="yop" class="java.lang.Long"/>
+	<field name="mop" class="java.lang.Long"/>
+	<field name="invamt" class="java.math.BigDecimal"/>
+	<field name="invcnt" class="java.lang.Long"/>
+	<field name="payamt" class="java.math.BigDecimal"/>
+	<field name="paycnt" class="java.lang.Long"/>
+	<field name="discamt" class="java.math.BigDecimal"/>
+	<field name="disccnt" class="java.lang.Long"/>
+	<field name="dnamt" class="java.math.BigDecimal"/>
+	<field name="dncnt" class="java.lang.Long"/>
+	<field name="cnamt" class="java.math.BigDecimal"/>
+	<field name="cncnt" class="java.lang.Long"/>
+	<field name="adjamt" class="java.math.BigDecimal"/>
+	<field name="adjcnt" class="java.lang.Long"/>
+	<field name="wroffamt" class="java.math.BigDecimal"/>
+	<field name="wroffcnt" class="java.lang.Long"/>
+	<field name="inttamt" class="java.math.BigDecimal"/>
+	<field name="inttcnt" class="java.lang.Long"/>
+	<field name="rtrchckamt" class="java.math.BigDecimal"/>
+	<field name="rtrchckcnt" class="java.lang.Long"/>
+	<field name="invpaidamt" class="java.math.BigDecimal"/>
+	<field name="invpaidcnt" class="java.lang.Long"/>
+	<field name="gyop" class="java.lang.Long"/>
+	<field name="gmop" class="java.lang.Long"/>
+	<field name="ginvamt" class="java.math.BigDecimal"/>
+	<field name="ginvcnt" class="java.lang.Long"/>
+	<field name="gpayamt" class="java.math.BigDecimal"/>
+	<field name="gpaycnt" class="java.lang.Long"/>
+	<field name="gdiscamt" class="java.math.BigDecimal"/>
+	<field name="gdisccnt" class="java.lang.Long"/>
+	<field name="gdnamt" class="java.math.BigDecimal"/>
+	<field name="gdncnt" class="java.lang.Long"/>
+	<field name="gcnamt" class="java.math.BigDecimal"/>
+	<field name="gcncnt" class="java.lang.Long"/>
+	<field name="gadjamt" class="java.math.BigDecimal"/>
+	<field name="gadjcnt" class="java.lang.Long"/>
+	<field name="gwroffamt" class="java.math.BigDecimal"/>
+	<field name="gwroffcnt" class="java.lang.Long"/>
+	<field name="ginttamt" class="java.math.BigDecimal"/>
+	<field name="ginttcnt" class="java.lang.Long"/>
+	<field name="grtrchckamt" class="java.math.BigDecimal"/>
+	<field name="grtrchckcnt" class="java.lang.Long"/>
+	<field name="ginvpaidamt" class="java.math.BigDecimal"/>
+	<field name="ginvpaidant" class="java.lang.Long"/>
+	<field name="tanggalan" class="java.sql.Timestamp"/>
+	<variable name="penomoran" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{vendcode}.valueOf( $F{vendcode} )]]></variableExpression>
+	</variable>
+	<group name="grpkodepelanggan" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{vendcode}]]></groupExpression>
+		<groupHeader>
+			<band height="85">
+				<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				<textField>
+					<reportElement x="0" y="2" width="197" height="20" isPrintInFirstWholeBand="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{STATUS}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="1" y="22" width="24" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Office :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="25" y="22" width="171" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{AKantor}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="42" width="25" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Deliv.  :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="62" width="25" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Billing :]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="25" y="42" width="172" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{AKirim}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="25" y="62" width="172" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{Atagih}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="197" y="43" width="59" height="19" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[FAX]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="197" y="24" width="59" height="19" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[PHONE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="197" y="62" width="59" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[EMAIL]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="256" y="63" width="59" height="19" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{Email}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="256" y="23" width="59" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{LandLine}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="256" y="43" width="59" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{Fax}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="315" y="42" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[BANK]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="315" y="62" width="57" height="19" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CURRENCY]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="315" y="22" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[GROUP]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="372" y="63" width="57" height="18" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="372" y="23" width="57" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{dscriptiongrp}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="372" y="43" width="57" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{bankcode}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="486" y="22" width="114" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{descdistcode}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="486" y="42" width="114" height="20" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{accfmttd}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="429" y="22" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Dist. Code]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="429" y="42" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Account Code]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="486" y="62" width="114" height="19"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{taxcode}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="429" y="62" width="57" height="19" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAX CODE]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="grptahun" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{yop}]]></groupExpression>
+		<groupHeader>
+			<band height="23">
+				<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				<staticText>
+					<reportElement x="0" y="2" width="26" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Tahun :]]></text>
+				</staticText>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement x="26" y="2" width="114" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Long"><![CDATA[$F{yop}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="80" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="167" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AP - MASTER VENDOR REPORT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="46" width="83" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PERIOD             :]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="427" y="61" width="113" height="13" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="541" y="61" width="60" height="13" backcolor="#FFFFFF"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="31" width="82" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[VENDOR CODE :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="1" y="15" width="166" height="16"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="83" y="31" width="287" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendortxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="83" y="46" width="57" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{yopfr}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="61" width="83" height="15"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS             :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="83" y="61" width="113" height="13"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{daktive}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="53" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="7" width="82" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[INVOICE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="83" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAYMENT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="140" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DISCOUNT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="197" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CREDIT NOTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="313" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ADJUSTMEN]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="370" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[WRITE OFF]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="427" y="8" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[INTEREST CHARGER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="484" y="8" width="56" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[RETURN CHECK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="540" y="8" width="60" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL INVOICE PAID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="254" y="8" width="59" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DEBIT NOTE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="26" y="27" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="83" y="28" width="57" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="4" width="600" height="1"/>
+			</line>
+			<line>
+				<reportElement x="1" y="50" width="600" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="27" width="26" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="140" y="28" width="57" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="427" y="28" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GROUP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="484" y="28" width="57" height="20" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BANK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="197" y="28" width="57" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ADDRESS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="254" y="28" width="59" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PHONE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="313" y="28" width="57" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FAX]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="370" y="29" width="57" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[EMAIL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="541" y="29" width="59" height="19" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CURRENCY]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="60" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{jenislaporan}.equals("0")]]></printWhenExpression>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="25" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grpkodepelanggan"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{penomoran}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="25" y="0" width="58" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendcode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="83" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="140" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{daktive}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="197" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{AKantor}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="254" y="0" width="59" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{LandLine}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="313" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Fax}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="370" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Email}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="427" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscriptiongrp}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="484" y="0" width="57" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankcode}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="541" y="0" width="59" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="197" y="20" width="57" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{AKirim}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="197" y="40" width="57" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{Atagih}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="60">
+			<printWhenExpression><![CDATA[$P{jenislaporan}.equals( "1" )]]></printWhenExpression>
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement x="26" y="0" width="114" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{mop}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="26" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{invamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="26" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{invcnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="83" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{payamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="83" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{paycnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="140" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{discamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="140" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{disccnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="197" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{cncnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="197" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{cnamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="313" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{adjamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="313" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{adjcnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="370" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{wroffamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="370" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{wroffcnt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="427" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{inttamt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="427" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{inttcnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="484" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{rtrchckamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="484" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{rtrchckcnt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="541" y="20" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{invpaidamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="541" y="40" width="57" height="20" isRemoveLineWhenBlank="true" printWhenGroupChanges="grptahun"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{invpaidcnt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="26" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Bulan :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="20" width="26" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Rupiah]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="40" width="26" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Unit]]></text>
+			</staticText>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="254" y="20" width="59" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{dnamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="254" y="40" width="59" height="20" isRemoveLineWhenBlank="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{dncnt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="4" width="83" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[L-03-AP-M-0001-MAPMV]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="140" y="4" width="100" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="83" y="4" width="57" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Printer :]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement x="501" y="4" width="100" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{tanggalan}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="600" height="1"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

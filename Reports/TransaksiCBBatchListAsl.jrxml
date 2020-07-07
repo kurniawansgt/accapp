@@ -1,0 +1,805 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Entry Batch" language="groovy" pageWidth="1000" pageHeight="740" whenNoDataType="BlankPage" columnWidth="960" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" isSummaryWithPageHeaderAndFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="nobatchfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["30"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nobatchto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["37"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypefr" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["R"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT CAST(a.batchno AS CHARACTER) batcno,a.btchdesc,LEFT(a.batchdate,10)batchdate,
+       UCASE(a.cmpnyid)cmpnyid,
+       CASE WHEN a.batchtype='N' THEN 'Normal Entries'
+            WHEN a.batchtype='G' THEN 'Generate'
+            WHEN a.batchtype='I' THEN 'Import' ELSE 'None' END typebatch,
+       CASE WHEN a.batchsts='P' THEN 'Posted'
+            WHEN a.batchsts='O' THEN 'Open'
+            WHEN a.batchsts='C' THEN 'Closed' ELSE 'None' END batchsts,
+       a.bankcode,e.bankname,a.cmpnyid,
+       (-1*a.debittot) debittot,
+       a.credittot,
+       (a.credittot-a.debittot)saldo,
+       CAST(IFNULL(b.entryno,0) AS CHARACTER)entryno,
+       CASE WHEN b.entrytype='C' THEN 'Cash Book'
+            WHEN b.entrytype='P' THEN 'Accout Payment' ELSE 'Account Recievable' END entrytype,
+       b.reference,b.yop,b.mop,b.custcheqno,
+       b.misccode,d.custcode,
+       CASE WHEN b.entrytype='R' THEN g.custmrname
+            WHEN b.entrytype='P' THEN h.vendname ELSE b.misccode END desccustommer,
+       b.dscription,b.curnccode,
+       IFNULL(c.srcecode,'')srcecode,c.dscription,c.taxcode,c.taxtype,c.taxpercent,
+       c.acccode,f.accfmttd,f.accdesc,
+       CASE WHEN c.detailamnt>0 THEN -1*IFNULL(c.detailamnt,0) ELSE 0 END gldebit,
+       CASE WHEN c.detailamnt<0 THEN -1*IFNULL(c.detailamnt,0) ELSE 0 END glcredit,
+       d.detailno,d.docno,LEFT(d.docdate,10) docdate,
+       CASE WHEN d.doctype='4' THEN 'Invoice'
+            WHEN d.doctype='5' THEN 'Debit Note'
+            WHEN d.doctype='6' THEN 'Credit Note'
+            WHEN d.doctype='7' THEN 'Interest' ELSE d.doctype END doctype,
+       d.paymentno,IFNULL(d.applamount,0) applamount,IFNULL(d.discount,0) discount,
+       IFNULL(d.adjtamount,0)adjtamount,
+       IFNULL(CONCAT(a.batchno,IFNULL(b.entryno,0),a.cmpnyid),'') bec,
+       CASE WHEN $P{entrytypefr}='C' THEN 'Cash Book'
+            WHEN $P{entrytypefr}='P' THEN 'Accout Payment'
+            WHEN $P{entrytypefr}='R' THEN 'Account Recievable' ELSE '' END typeentrytxtfr,
+       CASE WHEN $P{entrytypeto}='C' THEN 'Cash Book'
+            WHEN $P{entrytypeto}='P' THEN 'Accout Payment'
+            WHEN $P{entrytypeto}='R' THEN 'Account Recievable' ELSE '' END typeentrytxtto
+FROM cb_batchcontrol a
+LEFT JOIN cb_batchh b
+     ON b.batchno=a.batchno
+LEFT JOIN  cb_batchd c
+     ON c.batchno=a.batchno
+        AND c.entryno=b.entryno
+LEFT JOIN cb_batchsd d
+     ON d.batchno=a.batchno
+        AND d.entryno=b.entryno
+        AND d.detailno=c.detailno
+LEFT JOIN cb_bank e
+     ON e.bankcode=a.bankcode
+LEFT JOIN gl_account f
+     ON f.cmpnyid=a.cmpnyid AND ( f.acccode=c.acccode OR f.accfmttd=c.acccode)
+LEFT JOIN ar_customer g
+     ON g.custmrcode=d.custcode OR g.custmrcode=b.misccode
+LEFT JOIN ap_vendor h
+     ON h.vendcode=d.custcode OR h.vendcode=b.misccode
+LEFT JOIN cb_source i
+     ON i.srcecode=c.srcecode
+WHERE (a.batchno>=$P{nobatchfr} AND a.batchno<=$P{nobatchto})
+      AND (b.entrytype>=$P{entrytypefr} AND b.entrytype<=$P{entrytypeto})
+ORDER BY a.batchno,b.entryno,b.entrytype,c.detailno,d.subdetailno]]>
+	</queryString>
+	<field name="batcno" class="java.lang.String"/>
+	<field name="btchdesc" class="java.lang.String"/>
+	<field name="batchdate" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="typebatch" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="bankname" class="java.lang.String"/>
+	<field name="debittot" class="java.math.BigDecimal"/>
+	<field name="credittot" class="java.math.BigDecimal"/>
+	<field name="saldo" class="java.math.BigDecimal"/>
+	<field name="entryno" class="java.lang.String"/>
+	<field name="entrytype" class="java.lang.String"/>
+	<field name="reference" class="java.lang.String"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="custcheqno" class="java.lang.String"/>
+	<field name="misccode" class="java.lang.String"/>
+	<field name="custcode" class="java.lang.String"/>
+	<field name="desccustommer" class="java.lang.String"/>
+	<field name="dscription" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="srcecode" class="java.lang.String"/>
+	<field name="taxcode" class="java.lang.String"/>
+	<field name="taxtype" class="java.lang.String"/>
+	<field name="taxpercent" class="java.math.BigDecimal"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="gldebit" class="java.math.BigDecimal"/>
+	<field name="glcredit" class="java.math.BigDecimal"/>
+	<field name="detailno" class="java.math.BigDecimal"/>
+	<field name="docno" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.Object"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="paymentno" class="java.math.BigDecimal"/>
+	<field name="applamount" class="java.math.BigDecimal"/>
+	<field name="discount" class="java.math.BigDecimal"/>
+	<field name="adjtamount" class="java.math.BigDecimal"/>
+	<field name="bec" class="java.lang.Object"/>
+	<field name="typeentrytxtfr" class="java.lang.String"/>
+	<field name="typeentrytxtto" class="java.lang.String"/>
+	<variable name="egldebet" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}]]></variableExpression>
+	</variable>
+	<variable name="eglcredit" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="etotalvalue" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{applamount}]]></variableExpression>
+	</variable>
+	<variable name="ediscount" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{discount}]]></variableExpression>
+	</variable>
+	<variable name="eaddjustment" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{adjtamount}]]></variableExpression>
+	</variable>
+	<group name="batchno" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{batcno}]]></groupExpression>
+		<groupHeader>
+			<band height="31">
+				<textField>
+					<reportElement x="53" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{batcno}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="53" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{batchsts}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="1" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[BATCH NO :]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="106" y="1" width="169" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{btchdesc}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{batchdate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="275" y="1" width="65" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Date :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="480" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{typebatch}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="410" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Type :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="551" y="1" width="54" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Bank :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="605" y="1" width="155" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{bankname}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Status :]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="860" y="1" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{debittot}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="760" y="1" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Debit :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="760" y="11" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Credit :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="860" y="11" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{credittot}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="760" y="21" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Saldo :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="860" y="21" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{saldo}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="entryno" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{entryno}]]></groupExpression>
+		<groupHeader>
+			<band height="35">
+				<textField isBlankWhenNull="true">
+					<reportElement x="53" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{entryno}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="1" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Entry No :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{reference}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="159" y="1" width="118" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{entrytype}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="106" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Type :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="277" y="1" width="63" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Reference :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Recievable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Custommer :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="410" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Currency :  ]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="480" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement x="53" y="11" width="106" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Accout Payment' ) ||
+$F{entrytype}.equals( 'Account Recievable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{desccustommer}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="159" y="11" width="40" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Accout Payment' ) ||
+$F{entrytype}.equals( 'Account Recievable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Cheque No. :]]></text>
+				</staticText>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="199" y="11" width="141" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Accout Payment' ) ||
+$F{entrytype}.equals( 'Account Recievable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{custcheqno}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="550" y="1" width="55" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Periode :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="661" y="1" width="99" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$F{yop}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="605" y="1" width="56" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Integer"><![CDATA[$F{mop}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Accout Payment' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Vendor  :]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="23" width="960" height="1" printWhenGroupChanges="entryno" forecolor="#666666"/>
+				</line>
+				<staticText>
+					<reportElement x="1" y="24" width="53" height="10" printWhenGroupChanges="entryno"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[SOURCE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="53" y="24" width="53" height="10" printWhenGroupChanges="entryno"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAX CODE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="106" y="24" width="53" height="10" printWhenGroupChanges="entryno"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAXT TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="159" y="24" width="40" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAX (%)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="199" y="24" width="76" height="10" printWhenGroupChanges="entryno"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ACC. CODE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="275" y="24" width="65" height="10" printWhenGroupChanges="entryno"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DESCIPTION]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="340" y="24" width="70" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[GL DEBIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="410" y="24" width="70" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[GL CREDIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="480" y="24" width="70" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DOCUMEN NO.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="550" y="24" width="55" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DOCUMEN TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="605" y="24" width="55" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[REFERENCE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="660" y="24" width="100" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TOTAL VALUE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="760" y="24" width="100" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DISCOUNT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="860" y="24" width="100" height="10" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ADJUSTMENT]]></text>
+				</staticText>
+				<line>
+					<reportElement x="0" y="34" width="960" height="1" printWhenGroupChanges="entryno" forecolor="#666666"/>
+				</line>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="340" y="2" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{egldebet}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="410" y="2" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{eglcredit}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="275" y="2" width="65" height="10"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="660" y="2" width="101" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{etotalvalue}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="761" y="2" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{ediscount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="861" y="2" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{eaddjustment}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="275" y="1" width="205" height="1"/>
+				</line>
+				<line>
+					<reportElement x="275" y="12" width="205" height="1"/>
+				</line>
+				<line>
+					<reportElement x="661" y="2" width="299" height="1"/>
+				</line>
+				<line>
+					<reportElement x="661" y="13" width="299" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<pageHeader>
+		<band height="55">
+			<textField>
+				<reportElement mode="Opaque" x="760" y="41" width="100" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="860" y="41" width="100" height="10" backcolor="#FFFFFF"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="11" width="159" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CASH BOOK BATCH ENTRY REPORT (CBBTCL)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="31" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH NO. :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="53" y="31" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{nobatchfr}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="106" y="31" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TO]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="159" y="31" width="116" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{nobatchto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="159" y="41" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="41" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TYPE          :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="53" y="41" width="106" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{typeentrytxtfr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="212" y="41" width="128" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{typeentrytxtto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="1" width="159" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="21" width="53" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DatePrinted :]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="54" y="21" width="106" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band/>
+	</columnHeader>
+	<detail>
+		<band height="11">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="53" y="1" width="53" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="106" y="1" width="53" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{taxtype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0 %" isBlankWhenNull="true">
+				<reportElement x="159" y="1" width="40" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{taxpercent}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="275" y="1" width="65" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{gldebit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement isPrintRepeatedValues="false" x="410" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{glcredit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="480" y="1" width="70" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{docno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="550" y="1" width="55" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{doctype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="605" y="1" width="55" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{paymentno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="660" y="1" width="100" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{applamount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="760" y="1" width="100" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{discount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="860" y="1" width="101" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{adjtamount}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="1" width="53" height="10" isRemoveLineWhenBlank="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{srcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="199" y="1" width="76" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement lineSpacing="Single">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accfmttd}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15">
+			<textField isBlankWhenNull="true">
+				<reportElement x="77" y="3" width="232" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="2" y="3" width="75" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Printer :]]></text>
+			</staticText>
+			<line>
+				<reportElement x="1" y="2" width="960" height="1"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+</jasperReport>

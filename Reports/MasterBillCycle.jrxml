@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterBillCycle" pageWidth="640" pageHeight="750" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="cyclcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["BLN"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cyclcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["TAHUN"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktiffr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="kodeperusahaan" class="java.lang.String">
+		<defaultValueExpression><![CDATA["accapp"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jenislaporan" class="java.lang.String">
+		<parameterDescription><![CDATA[Detail]]></parameterDescription>
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dayscyclfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dayscyclto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1825"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktifto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT @ROW:=@ROW+1 Nomor,a.cyclcode,a.dscrition,a.active,a.dayscycl,
+             a.status,a.daktive,
+             a.txtcyclcode,a.txtaktif, a.txtdayscycl,a.tanggalan
+from
+(
+          select cyclcode,dscrition,active,dayscycl,
+          case when active=1 then concat('Code : ',(cyclcode),' ',dscrition,' -  Active ' )
+                   else concat('Kode Grup : ',(cyclcode),' ',dscrition,' - Not Active ') end status,
+          case when active=1 then 'Active' else 'Not Active' end daktive,
+          if($P{cyclcodefr}='' and $P{cyclcodeto}='','ALL BILL CYCLE CODE',
+              concat(if($P{cyclcodefr}='' ,(select concat(lcase(cyclcode),'-',dscrition)  from ar_billcycl order by lcase(cyclcode) asc limit 1),
+                              IFNULL((select concat(cyclcode,'-',dscrition)  from ar_billcycl WHERE lcase(cyclcode)=lcase($P{cyclcodefr}) limit 1),
+                                          $P{cyclcodefr})
+                            ),
+                          '  TO  ',
+                   	  if($P{cyclcodeto}='' ,(select concat(lcase(cyclcode),'-',dscrition)  from ar_billcycl order by lcase(cyclcode) desc limit 1),
+                              IFNULL((select concat(cyclcode,'-',dscrition)  from ar_billcycl WHERE lcase(cyclcode)=lcase($P{cyclcodeto}) limit 1),
+                                                                  $P{cyclcodeto})
+                            )
+                         )
+            ) txtcyclcode,
+           if($P{aktiffr}='' and $P{aktifto}='','ALL STATUS',
+              concat(if( cast($P{aktiffr} as decimal)=0 and $P{aktiffr}<>'0' ,
+                              (select if(active=0,'NOT ACTIVE','ACTIVE')  from ar_billcycl order by active,cyclcode asc limit 1),
+                              IFNULL(
+                                          (select if(active=0,'NOT ACTIVE','ACTIVE')  from ar_billcycl WHERE active= $P{aktiffr}
+                                           order by active,cyclcode limit 1),
+                                           if($P{aktiffr}='0' OR $P{aktiffr}='','NON ACTIVE ','ACTIVE ')
+                                        )
+                            ),
+                          ' TO ',
+                   	 if(cast($P{aktifto}as decimal)=0 and $P{aktifto}<>'0' ,
+                            (select if(active=0,'NOT ACTIVE','ACTIVE')  from ar_billcycl order by active,cyclcode desc limit 1),
+                             IFNULL((select if(active=0,'NOT ACTIVE','ACTIVE')  from ar_billcycl WHERE active= $P{aktifto}
+                                         order by active,cyclcode limit 1),
+                                        if($P{aktiffr}='0' OR $P{aktiffr}='','NOT ACTIVE ','ACTIVE ')
+                                       )
+                            )
+                         )
+            ) txtaktif,
+           if($P{dayscyclfr}='' and $P{dayscyclto}='','ALL DAYS CYCLE',
+              concat(if( cast($P{dayscyclfr} as decimal)=0 ,
+                              (select concat(cast(dayscycl as character),' Days')  from ar_billcycl order by dayscycl,cyclcode asc limit 1),
+                              IFNULL((select concat(cast(dayscycl as character),' Days')  from ar_billcycl WHERE dayscycl= $P{dayscyclfr}
+                                           order by dayscycl,cyclcode limit 1),
+                                           concat(cast($P{dayscyclfr} as character),' Days')
+                                        )
+                            ),
+                          ' TO ',
+                   	 if(cast($P{dayscyclto}as decimal)=0 ,
+                            (select concat(cast(dayscycl as character),' Days')  from ar_billcycl order by dayscycl,cyclcode desc limit 1),
+                             IFNULL((select concat(cast(dayscycl as character),' Days')  from ar_billcycl WHERE dayscycl= $P{dayscyclto}
+                                         order by dayscycl,cyclcode limit 1),
+                                         concat(cast($P{dayscyclto} as character),' Days')
+                                       )
+                            )
+                         )
+            ) txtdayscycl,now() tanggalan
+from ar_billcycl
+where cmpnyid=$P{kodeperusahaan}  and
+           (lcase(cyclcode) between if($P{cyclcodefr}='' ,(select lcase(cyclcode) from ar_billcycl order by lcase(cyclcode) asc limit 1),
+                                                                                    lcase($P{cyclcodefr})
+                                                )
+                                       and if($P{cyclcodeto}='' ,(select lcase(cyclcode) from ar_billcycl order by lcase(cyclcode) desc limit 1),
+                                                                                    lcase($P{cyclcodeto})
+                                                )
+           )
+           and
+           (dayscycl between if(cast($P{dayscyclfr} as decimal)=0,(select dayscycl from ar_billcycl order by dayscycl,cyclcode asc limit 1),
+                                                                            cast($P{dayscyclfr} as DECIMAL)
+                                                )
+                                              and if(cast($P{dayscyclto}as decimal)=0 ,(select dayscycl from ar_billcycl order by dayscycl,cyclcode desc limit 1),
+                                                                            cast($P{dayscyclto} as DECIMAL)
+                                                )
+           )
+           and
+           (active between if(cast($P{aktiffr} as decimal)=0,(select active from ar_billcycl order by active,cyclcode asc limit 1),
+                                                                            cast($P{aktiffr} as DECIMAL)
+                                                )
+                                              and if(cast($P{aktifto}as decimal)=0 ,(select active from ar_billcycl order by active,cyclcode desc limit 1),
+                                                                            cast($P{aktifto} as DECIMAL)
+                                                )
+           )
+order by cyclcode,active,dayscycl
+)a, (SELECT @ROW:=0) R]]>
+	</queryString>
+	<field name="Nomor" class="java.lang.Long"/>
+	<field name="cyclcode" class="java.lang.String"/>
+	<field name="dscrition" class="java.lang.String"/>
+	<field name="active" class="java.lang.Integer"/>
+	<field name="dayscycl" class="java.math.BigDecimal"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="daktive" class="java.lang.String"/>
+	<field name="txtcyclcode" class="java.lang.String"/>
+	<field name="txtaktif" class="java.lang.String"/>
+	<field name="txtdayscycl" class="java.lang.String"/>
+	<field name="tanggalan" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="105" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="2" width="167" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BILL CYCLE MASTER REPORT]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="22" width="167" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{kodeperusahaan}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement x="508" y="83" width="91" height="20"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="408" y="83" width="100" height="20"/>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PAGE :   ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="43" width="86" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODE               :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="86" y="43" width="322" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtcyclcode}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="64" width="86" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TERM               :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="86" y="64" width="322" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtdayscycl}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="84" width="86" height="20"/>
+				<textElement>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS            :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="86" y="84" width="322" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{txtaktif}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="5" width="32" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[NO.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="32" y="5" width="54" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="86" y="5" width="322" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="408" y="5" width="100" height="20"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[STATUS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="508" y="6" width="92" height="20"/>
+				<textElement textAlignment="Right">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[TERM ( IN DAY)]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="2" width="600" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="27" width="600" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="32" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{Nomor}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="32" y="0" width="54" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cyclcode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="86" y="0" width="322" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{dscrition}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="408" y="0" width="100" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{daktive}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement x="508" y="1" width="92" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{dayscycl}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="25" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="4" width="86" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[L-02-AR-M-0003-BCMR]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="508" y="4" width="91" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.sql.Timestamp"><![CDATA[$F{tanggalan}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="86" y="4" width="322" height="20"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Printer :  ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="408" y="4" width="100" height="20"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="2" width="600" height="1"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

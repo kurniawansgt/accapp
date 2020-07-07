@@ -1,0 +1,1982 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CB Batch List" language="groovy" pageWidth="1000" pageHeight="740" whenNoDataType="BlankPage" columnWidth="960" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" isSummaryWithPageHeaderAndFooter="true" uuid="96e3dcf8-7097-4168-86be-24849fb506a1">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="nobatchfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nobatchto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[4]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypeap" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["P"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypear" class="java.lang.String">
+		<defaultValueExpression><![CDATA["R"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="btnormal" class="java.lang.String">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="bttranfer" class="java.lang.String">
+		<defaultValueExpression><![CDATA["T"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="betentered" class="java.lang.String">
+		<defaultValueExpression><![CDATA["E"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="betgenerated" class="java.lang.String">
+		<defaultValueExpression><![CDATA["G"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrytypecb" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypein" class="java.lang.String">
+		<defaultValueExpression><![CDATA["4"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypecn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["5"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypedn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["6"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypeit" class="java.lang.String">
+		<defaultValueExpression><![CDATA["7"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["O"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status2" class="java.lang.String">
+		<defaultValueExpression><![CDATA["P"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="status3" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+	</parameter>
+	<parameter name="mopfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mopto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["12"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT CAST(round(a.batchno,0) AS CHARACTER) batcno,a.btchdesc,
+       CAST(LEFT(a.batchdate,10) AS CHARACTER) batchdate,
+       UCASE(a.cmpnyid)cmpnyid,
+       CASE WHEN a.batchtype='N' THEN 'Normal Entries'
+            WHEN a.batchtype='T' THEN 'Transfer'
+            WHEN a.batchtype='I' THEN 'Import' ELSE ' ' END typebatch,
+       CASE WHEN a.entrytype='E' THEN 'Entered'
+            WHEN a.entrytype='G' THEN 'Generated' Else ' ' END entrytypebatch,
+       CASE WHEN a.batchsts='P' THEN 'Posted'
+            WHEN a.batchsts='O' THEN 'Open'
+            WHEN a.batchsts='C' THEN 'Closed' ELSE ' ' END batchsts,
+       a.bankcode,e.bankname,a.cmpnyid,
+       (-1*a.debittot) debittot,
+       a.credittot,
+       (a.credittot-a.debittot)saldo,
+       CAST(IFNULL(b.entryno,0) AS CHARACTER)entryno,
+       CASE WHEN b.entrytype='C' THEN 'Cash Book'
+            WHEN b.entrytype='P' THEN 'Account Payment' ELSE 'Account Recievable' END entrytype,
+       b.reference,b.yop,b.mop,b.custcheqno,CAST(LEFT(b.batchdate,10) AS CHARACTER) entrybatchdate,
+       b.misccode,d.custcode,
+       CASE WHEN b.entrytype='R' THEN g.custmrname
+            WHEN b.entrytype='P' THEN h.vendname ELSE b.misccode END desccustommer,
+       b.dscription AS entridesc,b.curnccode,
+       IFNULL(c.srcecode,'')srcecode,c.dscription AS detaildesc,c.taxcode,c.taxtype,c.taxpercent,
+       c.acccode,f.accfmttd,f.accdesc,
+       CASE WHEN c.srcecode='BKIN' AND c.detailamnt>0 THEN IFNULL(c.detailamnt,0)
+                WHEN c.srcecode='BKIN' AND c.detailamnt<0 THEN -1*IFNULL(c.detailamnt,0)
+                ELSE 0 END gldebit,
+       CASE WHEN c.srcecode='BKUT' AND c.detailamnt<0  THEN -1*IFNULL(c.detailamnt,0)
+                WHEN c.srcecode='BKUT' AND c.detailamnt>0 THEN IFNULL(c.detailamnt,0)
+                ELSE 0  END glcredit,
+       d.detailno,d.docno,CAST(ifnull(LEFT(d.docdate,10),'') AS CHARACTER) docdate,
+       CASE WHEN d.doctype='4' THEN 'Invoice'
+            WHEN d.doctype='5' THEN 'Credit Note'
+            WHEN d.doctype='6' THEN 'Debit Note'
+            WHEN d.doctype='7' THEN 'Interest' ELSE d.doctype END doctype,
+       d.docno paymentno,IFNULL(d.applamount,0) applamount,IFNULL(d.discount,0) discount,
+       IFNULL(d.adjtamount,0)adjtamount,
+       IFNULL(CONCAT(a.batchno,IFNULL(b.entryno,0),a.cmpnyid),'') bec,
+       CASE WHEN $P{btnormal}='N' and $P{bttranfer}='1' THEN 'Normal Entry'
+            WHEN $P{btnormal}='T' and $P{bttranfer}='2' THEN 'Transfer'
+            Else 'Normal Entry, Transfer'
+       END batchtypetxt,
+       CASE WHEN $P{betentered}='E' and $P{betgenerated}='1' THEN 'Entered'
+            WHEN $P{betentered}='G' and $P{betgenerated}='2' THEN 'Generated'
+            Else 'Entered, Generated'
+       END batchentrytypetxt,
+       CASE WHEN $P{status1}='O' and $P{status2}='2' and $P{status3}='3' THEN 'Open'
+            WHEN $P{status1}='1' and $P{status2}='P' and $P{status3}='3' THEN 'Post'
+            WHEN $P{status1}='1' and $P{status2}='2' and $P{status3}='C' THEN 'Closed'
+            WHEN $P{status1}='O' and $P{status2}='P'
+                 and $P{status3}='3' THEN 'Open, Post'
+            WHEN $P{status1}='O' and $P{status2}='2'
+                 and $P{status3}='C' THEN 'Open, Closed'
+            WHEN $P{status1}='1' and $P{status2}='P'
+                 and $P{status3}='C' THEN 'Post, Closed'
+            Else 'Post, Open, Closed'
+       END batchstatustxt,
+       CASE WHEN $P{entrytypecb}='C' and $P{entrytypeap}='2'
+                 AND $P{entrytypear}='3' THEN 'Cash Book'
+            WHEN $P{entrytypecb}='1' and $P{entrytypeap}='P'
+                 AND $P{entrytypear}='3'THEN 'Accout Payment'
+            WHEN $P{entrytypecb}='1' and $P{entrytypeap}='2'
+                 AND $P{entrytypear}='R' THEN 'Account Receivable'
+            WHEN $P{entrytypecb}='C' and $P{entrytypeap}='P'
+                 AND $P{entrytypear}='3' THEN 'Cash Book, Account Payment'
+            WHEN $P{entrytypecb}='C' and $P{entrytypeap}='2'
+                 AND $P{entrytypear}='R'THEN 'Cash Book, Account Receivable'
+            WHEN $P{entrytypecb}='1' and $P{entrytypeap}='P'
+                 AND $P{entrytypear}='R' THEN 'Account Payment, Account Receivable'
+            Else 'Cash Book, Account Payment, Account Receivable'
+       END entrytypeentrytxt,
+       case when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'IN'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'CN'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'DN'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='IT' THEN 'IN, CN'
+             when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'IN, DN'
+             when $P{doctypein}='4' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IN, IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'IN, CN, DN'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'IN, CN, IT'
+             when $P{doctypein}='4' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='7' THEN 'IN, CN, DN, IT'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='IT' THEN 'CN, DN'
+             when $P{doctypein}='IN' and $P{doctypecn}='5'
+                  and $P{doctypedn}='DN'  and $P{doctypeit}='7' THEN 'CN, IT'
+             when $P{doctypein}='IN' and $P{doctypecn}='CN'
+                  and $P{doctypedn}='6'  and $P{doctypeit}='7' THEN 'DN, IT'
+             ELSE ''
+       end doctypetxt,
+       a.entrycnt jmlnoentry,CONCAT(CAST(b.batchno AS CHARACTER),CAST(b.entryno AS CHARACTER))begrp,1 hitu,
+       CONCAT(CAST(b.batchno AS CHARACTER),CAST(b.entryno AS CHARACTER),c.srcecode)besgrp,
+       concat($P{yopfr},'-',$P{mopfr},' TO ',$P{yopto},'-',$P{mopto}) periodetxt
+FROM cb_batchcontrol a
+inner JOIN cb_batchh b
+     ON b.batchno=a.batchno
+inner JOIN  cb_batchd c
+     ON c.batchno=a.batchno
+        AND c.entryno=b.entryno
+left JOIN cb_batchsd d
+     ON d.batchno=a.batchno
+        AND d.entryno=b.entryno
+        AND d.detailno=c.detailno
+LEFT JOIN cb_bank e
+     ON e.bankcode=a.bankcode
+LEFT JOIN gl_account f
+     ON f.cmpnyid=a.cmpnyid AND ( f.acccode=c.acccode OR f.accfmttd=c.acccode)
+LEFT JOIN ar_customer g
+     ON g.custmrcode=d.custcode OR g.custmrcode=b.misccode
+LEFT JOIN ap_vendor h
+     ON h.vendcode=d.custcode OR h.vendcode=b.misccode
+LEFT JOIN cb_source i
+     ON i.srcecode=c.srcecode
+WHERE (a.batchno between CAST($P{nobatchfr} AS DECIMAL) AND CAST($P{nobatchto} AS DECIMAL))
+      and ( CAST(concat(b.yop,b.mop) as char) between concat($P{yopfr},$P{mopfr}) AND concat($P{yopto},$P{mopto}))
+      AND (a.batchtype=$P{btnormal} OR a.batchtype=$P{bttranfer})
+      AND (a.entrytype=$P{betentered} OR a.entrytype=$P{betgenerated})
+      AND (a.batchsts=$P{status1} OR a.batchsts=$P{status2} OR a.batchsts=$P{status3})
+      AND (b.entrytype=$P{entrytypeap} OR b.entrytype=$P{entrytypear}  OR b.entrytype=$P{entrytypecb})
+      AND (d.doctype=$P{doctypein} OR d.doctype=$P{doctypecn} OR d.doctype=$P{doctypedn}  OR d.doctype=$P{doctypeit}
+           OR c.srcecode='BKIN' OR c.srcecode='BKUT')
+ORDER BY a.batchno,b.entryno,b.entrytype,c.detailno,d.subdetailno]]>
+	</queryString>
+	<field name="batcno" class="java.lang.String"/>
+	<field name="btchdesc" class="java.lang.String"/>
+	<field name="batchdate" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="typebatch" class="java.lang.String"/>
+	<field name="entrytypebatch" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="bankname" class="java.lang.String"/>
+	<field name="debittot" class="java.math.BigDecimal"/>
+	<field name="credittot" class="java.math.BigDecimal"/>
+	<field name="saldo" class="java.math.BigDecimal"/>
+	<field name="entryno" class="java.lang.String"/>
+	<field name="entrytype" class="java.lang.String"/>
+	<field name="reference" class="java.lang.String"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="custcheqno" class="java.lang.String"/>
+	<field name="entrybatchdate" class="java.lang.String"/>
+	<field name="misccode" class="java.lang.String"/>
+	<field name="custcode" class="java.lang.String"/>
+	<field name="desccustommer" class="java.lang.String"/>
+	<field name="entridesc" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="srcecode" class="java.lang.String"/>
+	<field name="detaildesc" class="java.lang.String"/>
+	<field name="taxcode" class="java.lang.String"/>
+	<field name="taxtype" class="java.lang.String"/>
+	<field name="taxpercent" class="java.math.BigDecimal"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="gldebit" class="java.math.BigDecimal"/>
+	<field name="glcredit" class="java.math.BigDecimal"/>
+	<field name="detailno" class="java.math.BigDecimal"/>
+	<field name="docno" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="paymentno" class="java.lang.String"/>
+	<field name="applamount" class="java.math.BigDecimal"/>
+	<field name="discount" class="java.math.BigDecimal"/>
+	<field name="adjtamount" class="java.math.BigDecimal"/>
+	<field name="bec" class="java.lang.Object"/>
+	<field name="batchtypetxt" class="java.lang.String"/>
+	<field name="batchentrytypetxt" class="java.lang.String"/>
+	<field name="batchstatustxt" class="java.lang.String"/>
+	<field name="entrytypeentrytxt" class="java.lang.String"/>
+	<field name="doctypetxt" class="java.lang.String"/>
+	<field name="jmlnoentry" class="java.lang.Integer"/>
+	<field name="begrp" class="java.lang.String"/>
+	<field name="hitu" class="java.lang.Long"/>
+	<field name="besgrp" class="java.lang.String"/>
+	<field name="periodetxt" class="java.lang.String"/>
+	<variable name="egldebet" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}]]></variableExpression>
+	</variable>
+	<variable name="eglcredit" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="etotalvalue" class="java.lang.Double" resetType="Group" resetGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{applamount}]]></variableExpression>
+	</variable>
+	<variable name="ediscount" class="java.lang.Double" resetType="Group" resetGroup="entryno" incrementType="Group" incrementGroup="entryno">
+		<variableExpression><![CDATA[$F{discount}]]></variableExpression>
+	</variable>
+	<variable name="eaddjustment" class="java.lang.Double" resetType="Group" resetGroup="entryno" incrementType="Group" incrementGroup="entryno">
+		<variableExpression><![CDATA[$F{adjtamount}]]></variableExpression>
+	</variable>
+	<variable name="jmlbatch" class="java.lang.Double" incrementType="Group" incrementGroup="batchno" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{batcno}]]></variableExpression>
+	</variable>
+	<variable name="jmlentry" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{hitu}]]></variableExpression>
+	</variable>
+	<variable name="jmlstsopen" class="java.lang.Double" incrementType="Group" incrementGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Open" ) ? $F{hitu} : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlstspost" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Post" ) ? $F{hitu} : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlstsclosed" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Closed" ) ? $F{hitu}  :  0]]></variableExpression>
+	</variable>
+	<variable name="jmlnormal" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Normal Entries" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmltransfer" class="java.lang.Double" incrementType="Group" incrementGroup="batchno" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Transfer" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlimport" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Import" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlentered" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Entered" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlgenerated" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Generated" )? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlcb" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Cash Book" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlap" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Payment" ) ?  1  :  0]]></variableExpression>
+	</variable>
+	<variable name="jmlar" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Receivable" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlin" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Invoice" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlcn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Credit Note" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmldn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Debit Note" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="jmlit" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Interest" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbbatch" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}]]></variableExpression>
+	</variable>
+	<variable name="amtglcrbatch" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="amtgltotbatch" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}+$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="amtgldbentry" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}]]></variableExpression>
+	</variable>
+	<variable name="amtglcrentry" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="amtgltotentry" class="java.lang.Double" incrementType="Group" incrementGroup="entryno" calculation="Sum">
+		<variableExpression><![CDATA[$F{gldebit}+$F{glcredit}]]></variableExpression>
+	</variable>
+	<variable name="amtgldbopen" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Open" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcropen" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Open" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotopen" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Open" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbpost" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Post" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrpost" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Post" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotpost" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Post" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbclosed" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Closed" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrclosed" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Closed" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotclosed" class="java.lang.Double" incrementType="Group" incrementGroup="batchstsgrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{batchsts}.equals( "Closed" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbnormal" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Normal Entries" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrnormal" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Normal Entries" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotnormal" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Normal Entries" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbtransfer" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Transfer" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrtransfer" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Transfer" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltottransfer" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Transfer" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbimport" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Import" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrimport" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Import" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotimport" class="java.lang.Double" incrementType="Group" incrementGroup="typebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{typebatch}.equals( "Import" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbentered" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Entered" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrentered" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Entered" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotentered" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Entered" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbgenerated" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Generated" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrgenerated" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Generated" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotgenerated" class="java.lang.Double" incrementType="Group" incrementGroup="entrytypebatch" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytypebatch}.equals( "Generated" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbcb" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Cash Book" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrcb" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Cash Book" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotcb" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Cash Book" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbap" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Payable" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrap" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Payable" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotap" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Payable" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbar" class="java.lang.Number" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Receivable" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrar" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Receivable" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotcr" class="java.lang.Double" incrementType="Group" incrementGroup="entrytype" calculation="Sum">
+		<variableExpression><![CDATA[$F{entrytype}.equals( "Account Receivable" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbin" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Invoice" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrin" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Invoice" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotin" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Invoice" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbcn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Credit Note" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrcn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Credit Note" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotcn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Credit Note" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbdn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Debit Note" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrdn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Debit Note" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotdn" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Debit Note" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgldbit" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Interest" ) ? $F{gldebit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtglcrit" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Interest" ) ? $F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<variable name="amtgltotit" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "Interest" ) ? $F{gldebit}+$F{glcredit} : 0]]></variableExpression>
+	</variable>
+	<group name="batchno" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{batcno}]]></groupExpression>
+		<groupHeader>
+			<band height="31">
+				<textField>
+					<reportElement uuid="d0f10a00-cfd7-4121-b8a1-cf73eb6fe133" x="54" y="1" width="52" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batcno}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="c2cf7dd1-bb98-4484-9e4a-ac0ac03b4a00" isPrintRepeatedValues="false" x="54" y="11" width="52" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchsts}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="14853c60-a7cf-405f-9dc9-a8d6c16d0f75" x="1" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[BATCH NO :]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="6428656c-5f21-46ef-9587-4f502fd15603" x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{batchdate}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="330502b3-08b4-417a-b9fa-6f1189cc9475" x="275" y="1" width="65" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Date :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="cb12002d-4bce-4cb2-b2e0-edd3f8230dc2" x="480" y="1" width="71" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{typebatch}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="5f186cfd-7df6-43a9-bd9f-5aeda6dfed5b" x="410" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Type :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="89dcc20c-4542-46cd-9e4b-ed076ba77530" x="551" y="1" width="54" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Bank :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="a505ccd7-ce58-495d-9f17-e0293ab310db" x="605" y="1" width="155" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bankname}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="9f59ad16-a645-4f61-9453-0e1e7313ea1b" x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Status :]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="4a5be094-5a4d-4e42-8f22-6ff7ab3c96fc" isPrintRepeatedValues="false" x="860" y="1" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{debittot}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="11d0c4cc-668e-43ad-976d-51e774555a4a" x="760" y="1" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Debit :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="a36e7a7f-1295-4716-8e95-8a5aa7d54817" x="760" y="11" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Credit :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="85682624-8e38-4ca6-9573-ded2115b88bd" x="860" y="11" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{credittot}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="3f92fa21-5810-49be-8c95-d40d702b3270" x="760" y="21" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Saldo :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="e1f79059-5b11-44c2-8b14-b9986559c100" isPrintRepeatedValues="false" x="860" y="21" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{saldo}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="b7ebdee0-e8f0-4c30-8b5e-5e70139d2fb3" x="106" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[No. Of Entry :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="26d9ada8-fbe2-4d7f-b8a7-e5975ac96557" x="159" y="11" width="40" height="10"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{jmlnoentry}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="8158ed9c-3e9f-41c4-961a-9ec963decd5a" x="199" y="11" width="76" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Entry Type Batch :  ]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="f6a20c2e-8e09-42bd-b158-5b4074ad8c9f" x="275" y="11" width="135" height="10" isPrintWhenDetailOverflows="true"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{entrytypebatch}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="entryno" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{entryno}]]></groupExpression>
+		<groupHeader>
+			<band height="35">
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="d011c8b4-9f0c-4a8a-880d-6a4b3ae822f8" isPrintRepeatedValues="false" x="54" y="1" width="52" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{entryno}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="fdf48c35-2f7e-47cb-99cd-6cb9082a7965" isPrintRepeatedValues="false" x="1" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Entry No :]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="95f0c945-f676-4a03-b1fa-7e8c539e1458" isPrintRepeatedValues="false" x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{reference}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="0f54d2f0-5125-4a93-aade-d71a7206e83c" isPrintRepeatedValues="false" x="159" y="1" width="118" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{entrytype}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="d1099485-679b-4c62-8287-6e9f35fb492c" isPrintRepeatedValues="false" x="106" y="1" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Type :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="e3bd1722-3f7c-4ee7-87dd-0e9f0d32d20e" isPrintRepeatedValues="false" x="277" y="1" width="63" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Reference :  ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="dc59d4a0-6059-4a3a-9611-6ad670b25327" isPrintRepeatedValues="false" x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Receivable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Custommer :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="7dbb6644-43c4-47ce-b07a-08a68e7a934d" isPrintRepeatedValues="false" x="410" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Entry Desc.]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="63a5aba3-99af-4ddd-a21d-67ab7a0029ae" isPrintRepeatedValues="false" x="480" y="1" width="71" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{entridesc}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="fbe6dbf0-c29f-43c0-9ffb-7314804714cc" isPrintRepeatedValues="false" x="53" y="11" width="222" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Payment' ) ||
+$F{entrytype}.equals( 'Account Receivable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{desccustommer}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="3f93b254-bfe3-4873-8403-1b19142b7ee1" isPrintRepeatedValues="false" x="277" y="11" width="63" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Payment' ) ||
+$F{entrytype}.equals( 'Account Receivable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Cheque No. :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="9f58e3bb-fba2-4586-98a5-5d365444a55b" isPrintRepeatedValues="false" x="340" y="11" width="209" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Payment' ) ||
+$F{entrytype}.equals( 'Account Receivable' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custcheqno}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="1ae6f4ca-f94e-405a-9d84-989a9e7ea417" isPrintRepeatedValues="false" x="551" y="1" width="54" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Periode :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="6ca12f86-0d47-4bd8-b1c0-881af844126f" isPrintRepeatedValues="false" x="661" y="1" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{yop}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="8eb1f67a-e198-439a-abf0-0e780f064f8a" isPrintRepeatedValues="false" x="605" y="1" width="56" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{mop}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="26569e66-a89c-4821-8d5d-a8c43caa8cc0" isPrintRepeatedValues="false" x="1" y="11" width="53" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp">
+						<printWhenExpression><![CDATA[$F{entrytype}.equals( 'Account Payment' )]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Vendor  :]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="a1e78f10-afae-4ed4-9f5b-870270770278" x="0" y="23" width="960" height="1" printWhenGroupChanges="begrp" forecolor="#666666"/>
+				</line>
+				<staticText>
+					<reportElement uuid="d973e57c-d520-4084-b40d-01de5e4035b8" x="1" y="24" width="53" height="10" printWhenGroupChanges="begrp"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[SOURCE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="c932d26f-18c4-4491-b717-8beb1a8291cc" x="54" y="24" width="52" height="10" printWhenGroupChanges="begrp"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DETAIL DESC.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="ac15e3d9-575a-47c8-8c51-1e5ac283f8ef" x="106" y="24" width="53" height="10" printWhenGroupChanges="begrp"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAXT TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="58511a10-faf2-4a6b-a2e2-c5bcfc7eb640" x="159" y="24" width="40" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TAX (%)]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8f1857b3-318f-4786-abd5-eac96550b05d" x="199" y="24" width="76" height="10" printWhenGroupChanges="begrp"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ACC. CODE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="1fc985ac-70a9-4a3b-8587-3a6deb20019f" x="275" y="24" width="65" height="10" printWhenGroupChanges="begrp"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DESCIPTION]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="cce3b480-c5b0-4529-a873-c7ccd3e4e05f" x="340" y="24" width="70" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[GL DEBIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="b80294fb-1c81-4b1b-8254-572eb9cd97e8" x="410" y="24" width="70" height="10" isPrintInFirstWholeBand="true" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[GL CREDIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="cf582986-a143-4f93-a748-11361cb4fb21" x="480" y="24" width="70" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DOCUMEN NO.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="c1709d6c-e3b6-4d53-b30b-ddc76eadd243" x="550" y="24" width="55" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DOCUMEN TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="56003939-8d66-4ad6-88bc-19b177a79371" x="605" y="24" width="55" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Doc. Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="8dee92c0-64bc-4128-aa97-8a2fa1322de7" x="660" y="24" width="100" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TOTAL VALUE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="171ab33f-5dbf-4b46-b194-b3650f7cfe43" x="760" y="24" width="100" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DISCOUNT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="7562958d-89cb-4505-b299-ed4d33f1e04b" x="860" y="24" width="100" height="10" printWhenGroupChanges="begrp"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ADJUSTMENT]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="f7dd58b2-4bd2-4918-a53b-8d2c13cf994a" x="0" y="34" width="960" height="1" printWhenGroupChanges="begrp" forecolor="#666666"/>
+				</line>
+				<staticText>
+					<reportElement uuid="5a203d4e-7073-4321-9515-dbae8c55c408" x="551" y="11" width="54" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[Date :  ]]></text>
+				</staticText>
+				<textField>
+					<reportElement uuid="7743a7c7-5296-4ffd-95aa-f32d61172b29" x="605" y="11" width="156" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="begrp"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{entrybatchdate}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="35">
+				<staticText>
+					<reportElement uuid="4edf53fa-3f69-457e-a8c5-40a40809df8a" x="340" y="13" width="70" height="10"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Total :  ]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="d4d94ac6-45f7-4164-9469-1a5ef6de054e" isPrintRepeatedValues="false" x="660" y="2" width="101" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{etotalvalue}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="6b229b56-710d-4e21-b0ff-8bb689d1925c" isPrintRepeatedValues="false" x="761" y="2" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{ediscount}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="a0230e74-57fa-4e9a-a2df-8689eba95057" isPrintRepeatedValues="false" x="861" y="2" width="100" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{eaddjustment}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement uuid="7744a7b9-d155-40f4-bb37-cda3f1c6195f" x="275" y="1" width="205" height="1"/>
+				</line>
+				<line>
+					<reportElement uuid="b1844bcd-b56d-4cc9-9dbc-65a56bd0ec02" x="340" y="12" width="140" height="1"/>
+				</line>
+				<line>
+					<reportElement uuid="9928c953-eae9-4398-8438-eaf4ef118186" x="661" y="2" width="299" height="1"/>
+				</line>
+				<line>
+					<reportElement uuid="e921a7f9-74b6-4b60-90f8-2e32e3944f39" x="661" y="12" width="299" height="1"/>
+				</line>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)">
+					<reportElement uuid="89c65f8f-59e2-4d26-aaee-d2dd65336e76" x="410" y="2" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{eglcredit}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)">
+					<reportElement uuid="89c65f8f-59e2-4d26-aaee-d2dd65336e76" x="410" y="13" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{eglcredit}>$V{egldebet}?$V{eglcredit}-$V{egldebet}:$V{egldebet}-$V{eglcredit}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="ff0552c6-3431-44f7-9999-afc50bc22713" x="106" y="1" width="169" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="batchno"/>
+					<textElement>
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{btchdesc}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(-#,##0)">
+					<reportElement uuid="c97cc03f-b3f3-43b7-957c-5fa3c4370d6c" x="340" y="2" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{egldebet}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement uuid="b1844bcd-b56d-4cc9-9dbc-65a56bd0ec02" x="410" y="22" width="70" height="1"/>
+					<graphicElement>
+						<pen lineWidth="1.752" lineStyle="Double"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="batchstsgrp">
+		<groupExpression><![CDATA[$F{batchsts}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="typebatch">
+		<groupExpression><![CDATA[$F{typebatch}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="entrytypebatch">
+		<groupExpression><![CDATA[$F{entrytypebatch}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="entrytype">
+		<groupExpression><![CDATA[$F{entrytype}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="doctypegrp">
+		<groupExpression><![CDATA[$F{doctype}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="begrp">
+		<groupExpression><![CDATA[$F{begrp}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="besgrp">
+		<groupExpression><![CDATA[$F{besgrp}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<pageHeader>
+		<band height="105">
+			<textField>
+				<reportElement uuid="73d06254-bb5b-48c6-a9eb-b3cc2c41af10" mode="Opaque" x="760" y="81" width="100" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement uuid="cff89e85-a008-4899-a360-a336a05ddd47" mode="Opaque" x="860" y="81" width="100" height="10" backcolor="#FFFFFF"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="a9f54242-cbbc-45d2-a254-4cce4be98d1e" x="1" y="11" width="159" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CB - BATCH LISTING (TransaksiCBBatchList)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d79904e2-0178-43bd-9ec7-c9449c7fdcbb" x="1" y="31" width="53" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr} == "0000" && $P{yopto} == "ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH NO. :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="2b1fd501-20e2-46b7-b5dd-c240f4d035b9" x="53" y="31" width="53" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr} == "0000" && $P{yopto} == "ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{nobatchfr}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="c60a4480-ff49-4472-b217-5ae33dead7dc" x="106" y="31" width="53" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr} == "0000" && $P{yopto} == "ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TO]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="47e953d6-77a4-4e88-9a90-4115b0fc06bf" x="159" y="31" width="116" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr} == "0000" && $P{yopto} == "ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{nobatchto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b69984d7-e9be-4c44-ac5e-55d02b71fada" x="1" y="41" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH TYPE  :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="f8791467-d4d5-4abb-aaa5-6399dbf715af" x="1" y="1" width="159" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b3a0ce85-44b8-43a8-b51e-706125066c7c" x="1" y="21" width="53" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DatePrinted :]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement uuid="65d6a31e-f0e6-44fa-8836-9148cac79900" x="54" y="21" width="106" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="4b6e141e-b75c-42a6-8786-7ca383129a35" x="1" y="51" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[B. ENTRY TYPE :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="31136cbd-2570-4ade-be5c-3ebf47eaadb9" x="1" y="61" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH STATUS :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e3b3d9f2-6f1b-4d02-b0bb-a3fdeeca63b2" x="1" y="71" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DOC. TYPE     :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="06ba8cbf-f9dd-461a-bf72-9386a10b8066" x="1" y="81" width="53" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ENTRY TYPE    :]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="76277ade-b4cd-48a4-95a9-1b53f8ef015a" x="54" y="41" width="221" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchtypetxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6b92e5cb-2f74-432e-8546-8884cd481ce2" x="54" y="51" width="221" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchentrytypetxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9af98a5a-9c70-4db0-b272-18dc3bb8e240" x="53" y="71" width="222" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctypetxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8961c85a-efaa-42f4-a071-e6b5e1b3b9fa" x="53" y="61" width="222" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchstatustxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a1a9a63a-0b03-40d3-b4c5-f7dddf697ef6" x="54" y="81" width="221" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{entrytypeentrytxt}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="357592fa-22fc-4395-902e-c5f5a1cc0704" x="0" y="95" width="960" height="1" printWhenGroupChanges="entryno" forecolor="#666666"/>
+			</line>
+			<textField>
+				<reportElement uuid="97da10d4-c471-4b09-aa90-a5830d7d2a72" x="54" y="31" width="221" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr}!="0000" && $P{yopto}!="ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{periodetxt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="86f816df-b6ff-425a-ba48-3196d7874bc7" x="0" y="31" width="53" height="10" isPrintInFirstWholeBand="true">
+					<printWhenExpression><![CDATA[$P{yopfr}!="0000" && $P{yopto}!="ZZZZ"]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Period :]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band/>
+	</columnHeader>
+	<detail>
+		<band height="11">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="765f97fd-a6d1-4b7d-b614-363292f9ce00" x="54" y="1" width="52" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detaildesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="ec52f46f-477f-4f2e-b121-d43a2f555f97" x="106" y="1" width="53" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxtype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0 %" isBlankWhenNull="true">
+				<reportElement uuid="8f1f1ea8-3525-47ad-8919-876d3067127f" x="159" y="1" width="40" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxpercent}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="bf55e422-a003-4907-b4af-3b317819c651" x="275" y="1" width="65" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="false">
+				<reportElement uuid="aa3b7050-d2c1-4591-aa76-6166c89c041e" isPrintRepeatedValues="false" x="340" y="1" width="70" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gldebit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="false">
+				<reportElement uuid="705cd0a5-3a15-4c9a-8c1a-dbe4c2aa7878" isPrintRepeatedValues="false" x="410" y="1" width="70" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="entryno"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{glcredit}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="a300cb5e-a513-4d71-b469-f571c1a0daf6" x="480" y="1" width="70" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b2f9776c-40f0-4c33-9a5a-53abfdc04861" x="550" y="1" width="55" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b4827a89-4bb3-4978-9c7f-187f5e10f385" x="605" y="1" width="55" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement uuid="16c84a7e-5316-4174-81df-a167c8f4929a" x="660" y="1" width="100" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{applamount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement uuid="64fc5cde-364f-46ed-ab66-79116f3b9e23" x="760" y="1" width="100" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{discount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement uuid="5d324415-3dcf-4a67-9fd0-b61e6059d343" x="860" y="1" width="101" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{adjtamount}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a94cc668-334d-4579-a967-00a040a89b34" isPrintRepeatedValues="false" x="1" y="1" width="53" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="besgrp"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{srcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="da94d7a0-324a-4dab-b3ab-b19a05c026e6" x="199" y="1" width="76" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{accfmttd}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="11">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a5df9228-9860-4bc2-ad75-c6835c8e904a" x="75" y="1" width="232" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="650388a7-04ea-4413-891f-6c1ec5cfb95d" x="0" y="1" width="75" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Printer :]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="205">
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="a1f90ed5-4ee5-4c65-92ae-3d615e9d231e" x="106" y="28" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlbatch}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="9773f313-bf86-4823-9d72-c9c43318c47d" x="106" y="38" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlentry}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b0f0b17b-b483-403a-9b26-b2fbef3daf8e" x="1" y="1" width="53" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summary :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="aba724ca-c49b-4ab0-90ca-3ec64330c383" x="1" y="28" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[1.  No Of Batch]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6aade9db-c541-48c9-a1e2-116df13c7c25" x="1" y="38" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[2.  No Of Entry]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b048796e-1394-4323-b3df-ff7a357061a1" x="1" y="58" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[4.  No Of Batch Status Post]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="90e91bf3-e71a-46a1-83a1-2c840f9d1e6a" x="1" y="48" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[3.  No Of Batch Status Open]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="da4104b2-6bf3-44ef-87b3-5ad9a345370a" x="1" y="68" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[5.  No Of Batch Status Closed]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="b79d3883-3ffe-4e7d-afc6-5fdffad46a34" x="106" y="48" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlstsopen}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="66ea7d53-ae1d-428c-9fe2-50e539d876d2" x="106" y="58" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlstspost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="2bd35f9b-c932-4363-821b-c795c5f6a33c" x="106" y="68" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlstsclosed}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="e036797d-6380-4fea-aef6-7e7726893f51" x="1" y="98" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[8.  No Of Import Type]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="b1bf2ea4-b5c9-4685-ba3b-e0684eb265d8" x="106" y="78" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlnormal}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="125089a1-f241-42d2-988e-3443b082be79" x="1" y="88" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[7.  No Of Transfer Type]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="caf69619-5175-4e66-ab36-092e8e1848a9" x="106" y="98" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlstsclosed}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f0316847-3376-4fa9-bbfb-71441c2de450" x="1" y="78" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[6.  No Of Normal Type]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="95645f04-5154-4a1e-ac28-c516d75ead38" x="106" y="88" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmltransfer}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f1237bbf-d0b4-4aee-9cc9-b6305149787d" x="1" y="118" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[10.  No Of Generated Type]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="d0c7ebd1-3351-4222-b505-a056b04bea45" x="106" y="108" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlentered}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="a700de6b-c646-4db5-b498-f18bc0b9eb86" x="106" y="118" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlgenerated}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f17b49d9-5426-4a8b-9316-43e0a944f5fd" x="1" y="108" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[9.   No Of Entered Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="11ffd875-1486-448c-b2d4-93ebdd255269" x="1" y="188" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[17.  No Of Interest]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a3de155a-8b85-489e-a6a5-c4a84050f152" x="1" y="178" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[16.  No Of Debit Note]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="7319d3e0-ce68-46bd-b477-fff2fc618491" x="106" y="188" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="3309f342-9101-46d8-99ec-11cd9fe64f55" x="106" y="178" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmldn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="06409cd3-cbf0-4001-9578-744376364c90" x="106" y="168" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlcn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="88d85dc1-121f-4fb4-a1be-dff431b3555f" x="106" y="138" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlap}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="bceb4241-4f53-4ee5-8f7a-19db0c2c44a1" x="1" y="148" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[13.  No Of Account Receivable]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="4cfd9ac9-1bce-4bbd-b8b8-11da8376edd5" x="106" y="128" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlcb}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="2aa8baca-154b-4d11-a341-12101f673fa3" x="106" y="158" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="f2cb9a3e-e457-4913-8238-3e2a5ae1ac0c" x="106" y="148" width="53" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{jmlar}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="ae14a29d-89ba-4e11-8b14-8b05345640be" x="1" y="128" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[11.  No Of Cash Book]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e316979e-f628-4925-b910-d7028fae5a54" x="1" y="158" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[14.  No Of Invoice]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6e2e673d-344a-450b-8ee7-24953585baed" x="1" y="168" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[15.  No Of Credit Note]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3bc2d0d1-8048-4351-beee-3f3ca20e6eda" x="1" y="138" width="105" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[12.  No Of Account Payment]]></text>
+			</staticText>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1a7114ff-374d-4965-8ac4-3491177eeb4f" x="159" y="28" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbbatch}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="65bcf045-c1d8-44b3-97b5-459fd675c4b3" x="275" y="28" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrbatch}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="607924b8-bb53-4c19-8eb6-063d160700bb" x="410" y="28" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbbatch}-$V{amtglcrbatch}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="69249606-c1a6-4b7e-b304-9bcd91f93153" x="275" y="38" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrentry}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8f77e06e-3e31-41b5-a964-2943c7474db5" x="410" y="38" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbentry}-$V{amtglcrentry}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="52af4456-8015-494f-a3a5-227b7565541f" x="159" y="38" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbentry}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8c1baa48-eb35-4b60-a240-c66999999b25" x="275" y="48" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcropen}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="b0bc6add-b125-4481-9768-dd1bdebeb096" x="410" y="48" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbopen}-$V{amtglcropen}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="4f821213-a098-4b6b-b865-c880c54566c6" x="159" y="48" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbopen}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="21c73278-8787-4a0f-8f6b-f2afd577f507" x="275" y="58" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrpost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="69a1b746-b034-49e4-bb51-b3cad3713a95" x="410" y="58" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbpost}-$V{amtglcrpost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="febd84a1-6806-4d56-96dc-023dc8ad0bd1" x="159" y="58" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbpost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1d2ae524-f968-4873-9a2e-52e6263ade4d" x="275" y="68" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrclosed}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="200fec16-ce15-429c-b60c-91ef301fe6dc" x="410" y="68" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbclosed}-$V{amtglcrclosed}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="f8dc27c0-5b06-465e-84ff-908693dbdabd" x="159" y="68" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbclosed}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8cc98305-9c96-4c3f-b7e1-e2a264b8d0ff" x="275" y="78" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrnormal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="ae8c3ceb-589f-42be-8c4a-99c1db885906" x="410" y="78" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbnormal}-$V{amtglcrnormal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8f39946c-d3b9-46ad-b246-3e74bdf7cbc7" x="159" y="78" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbnormal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="0d9e829e-62cf-42b3-b524-373d1c67b2b3" x="275" y="88" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrtransfer}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="5ca30fd0-d6dc-4c7a-a4b1-0775e7f9c785" x="410" y="88" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbtransfer}-$V{amtglcrtransfer}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="0645bffd-19bf-4190-a4b3-fb47dcfaa91c" x="159" y="88" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbtransfer}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="f6300683-ae87-44a6-877d-fe7da9aac92b" x="275" y="98" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrimport}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="bf8bd6b4-4b0d-49de-9940-8af169b58a6c" x="410" y="98" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbimport}-$V{amtglcrimport}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="09468ad2-2517-4bf1-8028-808032d532d3" x="159" y="98" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbimport}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="e91eba6c-b4f9-4026-9625-069b79608f56" x="275" y="108" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrentered}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="0f9a16d7-e8bf-4132-89e0-b4ff650de8a7" x="410" y="108" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbentered}-$V{amtglcrentered}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1838f030-20f0-4730-b3d6-8d7771282a5d" x="159" y="108" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbentered}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="5e2bcdf8-2c55-497a-84f8-5a1bf585478a" x="275" y="118" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrgenerated}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="26f849d1-f36b-43e1-bc9c-fbc65eb12e8d" x="410" y="118" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbgenerated}-$V{amtglcrgenerated}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="382ca491-67ac-45c9-b014-dad4292cc3db" x="159" y="118" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbgenerated}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="43d0a8e4-0987-4f7e-a010-68fa4f0b4154" x="275" y="128" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrcb}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="2c6ed818-fa83-49c3-8d65-071e072b0a8b" x="410" y="128" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbcb}-$V{amtglcrcb}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="f6ef0b6b-2971-4507-a158-940a65933a54" x="159" y="128" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbcb}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="13016abd-7575-4690-b8b9-55d0112cce7b" x="159" y="188" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8f086da9-48f6-4046-b59a-0c47abbe88eb" x="410" y="188" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbit}-$V{amtglcrit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="8c849c58-534d-4b97-a05e-5b74732bcf46" x="275" y="188" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrit}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="c694c8ab-e058-46d6-b167-5da7e38dd70e" x="159" y="178" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbdn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="917d4653-655c-4acd-a1d7-7235d92980d7" x="410" y="178" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbdn}-$V{amtglcrdn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="80aa3171-e24a-4826-b564-7f3f52bc6379" x="275" y="178" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrdn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="ceadc84c-7987-470a-9cf0-b0cb55e48262" x="159" y="168" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbcn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="50a9d5da-cf1a-4672-870e-10bc0998b48f" x="410" y="168" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbcn}-$V{amtglcrcn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1cab6b1b-067c-45a4-821f-c51c600f336d" x="275" y="168" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrcn}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="28304dd9-6692-4dcc-abd1-de74b3c22fde" x="159" y="158" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1a6a32c5-a217-4f56-b7ad-8f26faa529ed" x="410" y="158" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbin}-$V{amtglcrin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="862de287-74a8-4e15-b536-26b3eb816223" x="275" y="158" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="987d8152-c097-47e0-81da-f92912858420" x="159" y="148" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbar}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="5244de22-595b-4fad-955a-3dabcd23e35b" x="410" y="148" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbar}-$V{amtglcrar}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="27a44445-0ff4-4596-a130-f0b31106068e" x="275" y="148" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrar}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="e4210fda-6ea8-4832-a81c-2da6aefb6774" x="159" y="138" width="116" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbap}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="1b011b20-2660-426f-b190-ac2abf5593c3" x="410" y="138" width="140" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtgldbap}-$V{amtglcrap}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;(#,##0)">
+				<reportElement uuid="830cc029-487d-4aab-8c22-73f51a73d3e3" x="275" y="138" width="135" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{amtglcrap}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="7d321104-536e-44d5-a628-5744359ec354" x="159" y="14" width="116" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[GL Debit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="acfaa932-6713-4997-aa90-7519aa5c60e8" x="106" y="14" width="53" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fcce0249-2b46-42d0-92cb-af118cc59fe3" x="275" y="14" width="135" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[GL Credit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3bfa3ffc-b2b9-473e-9c96-695b3117e4b0" x="410" y="14" width="140" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Total Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="011b48bb-cde0-40f3-b3d2-283526a30d66" x="0" y="13" width="106" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Number Of ]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="d7caffb0-bd38-40be-b33d-15f8579dfc11" x="1" y="24" width="548" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="ad8c443d-085d-4047-8e23-708470de9dc8" x="1" y="11" width="548" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="38d56f4a-f01d-4301-8da6-f607d8dff1c4" x="1" y="201" width="548" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+		</band>
+	</summary>
+</jasperReport>

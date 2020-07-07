@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Transaksi AR Customer Yop Mop" language="groovy" pageWidth="740" pageHeight="570" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="700" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryNewPage="true" isSummaryWithPageHeaderAndFooter="true" uuid="7f0ba233-5fa3-42e0-8035-0418b21f4e7b">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="vendorfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vendorto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZZZZZZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypein" class="java.lang.String">
+		<defaultValueExpression><![CDATA["4"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypecn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["5"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypedn" class="java.lang.String">
+		<defaultValueExpression><![CDATA["6"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="doctypeit" class="java.lang.String">
+		<defaultValueExpression><![CDATA["7"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["03"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yop" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["2012"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.*,
+        CASE WHEN $P{doctypein}='4' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   IN'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   CN'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='IT'  THEN 'Documen Type    :   DN'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='7'  THEN 'Documen Type    :   IT'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   IN,CN'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   IN,DN'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='7' THEN 'Documen Type    :   IN,IT'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   IN,CN,DN'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='7' THEN 'Documen Type    :   IN,CN,IT'
+             WHEN $P{doctypein}='4' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='7' THEN 'Documen Type    :   IN,CN,DN,IT'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='IT' THEN 'Documen Type    :   CN,DN'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='5'
+                  AND $P{doctypedn}='DN'  AND $P{doctypeit}='7' THEN 'Documen Type    :   CN,IT'
+             WHEN $P{doctypein}='IN' AND $P{doctypecn}='CN'
+                  AND $P{doctypedn}='6'  AND $P{doctypeit}='7' THEN 'Documen Type    :   DN,IT'
+             ELSE ''
+       END doctypectk,
+       CONCAT(a.custmrcode,a.docnum)vendcodedocnum,
+       CONCAT(a.doctype,a.JAP)doctypegrp,
+       CONCAT($P{yop},$P{mop})peripara,
+       CONCAT('Periode              :    ',CONCAT($P{yop},'-',$P{mop}))periparatxt,
+       CONCAT('Operator :   ',$P{operator}) operator,
+       CONCAT('Custommer Code :   ',$P{vendorfr},'  TO  ',$P{vendorto})custommerjdl,
+       CONCAT('Date Printed        :   ',cast(now() as char)) tglctk,
+       CONCAT('Custommer Code :   ',a.custmrcode,' ',a.custmrname)custommer
+FROM
+(
+SELECT UCASE(d.custmrcode)custmrcode,d.custmrname,b.docnum,b.cmpnyid cmpnyid,
+       CASE WHEN b.doctype='4' THEN "IN"
+	    WHEN b.doctype='6' THEN "DN"
+	    WHEN b.doctype='5' THEN "CN"
+	    WHEN b.doctype='7' THEN "IT"
+       END doctype,
+       b.orderno orderno,'' pono,cast(LEFT(docdate,10) as char)docdate,
+       cast(LEFT(b.docduedate,10) as char)docduedate,
+       CASE WHEN b.batchno<0 THEN ' ' ELSE cast(CONCAT('IN ',b.batchno,'-',b.docentry) as char) END batchentry,
+       MID(b.termcode,2,3)dayover,
+       CASE WHEN b.doctype='5' THEN -1*b.doctotalafttaxamt ELSE b.doctotalafttaxamt END originalammount,
+       '1'  JAP,b.docnum noinv,
+        CONCAT(CAST(b.yop AS CHARACTER),'-',IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+               CAST(b.mop AS CHARACTER))) period
+FROM ar_invh b
+LEFT JOIN ar_customer d
+     ON d.custmrcode=ucase(b.custmrcode)
+WHERE (b.custmrcode BETWEEN $P{vendorfr} AND $P{vendorto})
+       AND (b.doctype=$P{doctypein} OR b.doctype=$P{doctypecn}
+            OR b.doctype=$P{doctypedn}  OR b.doctype=$P{doctypeit})
+       AND (CONCAT(CAST(b.yop AS CHARACTER),IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+             CAST(b.mop AS CHARACTER))<=CONCAT($P{yop},$P{mop})))
+
+UNION ALL
+SELECT UCASE(e.custmrcode)custmrcode,e.custmrname,b.docnum,b.cmpnyid cmpnyid,
+       CASE WHEN c.doctype='4' THEN "IN"
+	    WHEN c.doctype='6' THEN "DN"
+	    WHEN c.doctype='5' THEN "CN"
+	    WHEN c.doctype='7' THEN "IT"
+       END doctype,
+       '' orderno,' ' pono,cast(LEFT(b.docdate,10) as char)docdate,''docduedate,
+       cast(CONCAT('RC',' ',b.batchno,'-',b.docentry,'-',c.docnum) as char)batchentry,' ' dayover,
+       -1*c.payamt originalammount,'2' JAP,c.docnum noinv,
+        CONCAT(CAST(b.yop AS CHARACTER),'-',IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+               CAST(b.mop AS CHARACTER))) period
+FROM ar_rcpbatchlist a
+INNER JOIN ar_rcph b
+         ON b.batchno=a.batchno
+INNER JOIN ar_rcpd c
+        ON c.batchno=b.batchno AND c.docentry=b.docentry
+LEFT JOIN ar_invh d
+     ON d.custmrcode=b.custmrcode
+        AND d.doctype=c.doctype AND d.docnum=c.docnum
+LEFT JOIN ar_customer e
+     ON e.custmrcode=ucase(b.custmrcode)
+WHERE (UCASE(b.custmrcode) BETWEEN $P{vendorfr} AND $P{vendorto})
+      AND (c.doctype=$P{doctypein} OR c.doctype=$P{doctypecn}
+           OR c.doctype=$P{doctypedn}  OR c.doctype=$P{doctypeit})
+      AND (CONCAT(CAST(b.yop AS CHARACTER),IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+             CAST(b.mop AS CHARACTER))<=CONCAT($P{yop},$P{mop})))
+
+UNION ALL
+SELECT  UCASE(d.custmrcode)custmrcode,d.custmrname,b.docnum,b.cmpnyid cmpnyid,
+        CASE WHEN b.doctype='4' THEN "IN"
+	   WHEN b.doctype='6' THEN "DN"
+ 	   WHEN b.doctype='5' THEN "CN"
+	   WHEN b.doctype='7' THEN "IT"
+        END doctype,
+        ''orderno,' ' pono,cast(LEFT(b.docdate,10) as char)docdate,''docduedate,
+        cast(CONCAT('AD',' ',b.batchno,'-',b.docentry) as char)batchentry,' ' dayover,
+        b.doctotalpayamt originalammount,'3' JAP,b.docnum noinv,
+        CONCAT(CAST(b.yop AS CHARACTER),'-',IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+               CAST(b.mop AS CHARACTER))) period
+FROM  ar_adjbatchlist a
+INNER JOIN ar_adjh b
+      ON a.batchno=b.batchno
+INNER JOIN ar_adjd c
+      ON c.batchno=b.batchno
+         AND c.docentry=b.docentry
+LEFT JOIN ar_customer d
+     ON d.custmrcode=UCASE(b.custmrcode)
+WHERE (b.custmrcode BETWEEN $P{vendorfr} AND $P{vendorto})
+      AND (b.doctype=$P{doctypein} OR b.doctype=$P{doctypecn}
+           OR b.doctype=$P{doctypedn}  OR b.doctype=$P{doctypeit})
+       AND (CONCAT(CAST(b.yop AS CHARACTER),IF(b.mop<10,CONCAT('0',CAST(b.mop AS CHARACTER)),
+             CAST(b.mop AS CHARACTER))<=CONCAT($P{yop},$P{mop})))
+
+UNION ALL
+
+SELECT a.*
+FROM
+(
+SELECT UCASE(d.custmrcode)custmrcode,d.custmrname,a.docnum,a.cmpnyid,
+       case WHEN a.doctype='4' THEN "IN"
+            WHEN a.doctype='6' THEN "DN"
+	  WHEN a.doctype='5' THEN "CN"
+	  WHEN a.doctype='7' THEN "IT"
+       END doctype,
+       a.orderno orderno,a.custmrpono pono,CAST(LEFT(a.docdate,10) AS CHAR)docdate,
+       CAST(LEFT(a.docduedate,10) AS CHAR)docduedate,
+       ' ' batchentry,MID(a.termcode,2,3) dayover,
+       CAST(a.doctotalamtr AS DECIMAL) originalammount,
+       '4' JAP,a.docnum noinv,
+        concat(cast(a.yop as character),'-',if(a.mop<10,concat('0',cast(a.mop as character)),
+               cast(a.mop as character))) period
+FROM ar_invobl a
+LEFT JOIN ar_customer d
+     ON d.custmrcode=ucase(a.custmrcode)
+)a
+WHERE NOT EXISTS(SELECT b.*
+                              FROM ar_invh b
+                              WHERE b.custmrcode=a.custmrcode AND b.docnum=a.docnum
+                                         AND LEFT(a.docdate,10)=LEFT(a.docdate,10)
+                             )
+            AND NOT EXISTS(SELECT b.*
+                              FROM ar_rcpd b
+                              WHERE b.custmrcode=a.custmrcode AND b.docnum=a.docnum
+                                         AND LEFT(a.docdate,10)=LEFT(a.docdate,10)
+                             )
+            AND NOT EXISTS(SELECT b.*
+                              FROM ar_adjh b
+                              WHERE b.custmrcode=a.custmrcode AND b.docnum=a.docnum
+                                         AND LEFT(a.docdate,10)=LEFT(a.docdate,10)
+                             )
+            AND (a.custmrcode BETWEEN $P{vendorfr} AND $P{vendorto})
+           AND (a.period<=CONCAT($P{yop},$P{mop}))
+            AND (a.doctype='IN' OR a.doctype='CN'
+                   OR a.doctype='DN'  OR a.doctype='IT')
+
+)a
+ORDER BY a.custmrcode,a.noinv,a.JAP]]>
+	</queryString>
+	<field name="custmrcode" class="java.lang.String"/>
+	<field name="custmrname" class="java.lang.String"/>
+	<field name="docnum" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="orderno" class="java.lang.String"/>
+	<field name="pono" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.String"/>
+	<field name="docduedate" class="java.lang.String"/>
+	<field name="batchentry" class="java.lang.String"/>
+	<field name="dayover" class="java.lang.String"/>
+	<field name="originalammount" class="java.math.BigDecimal"/>
+	<field name="JAP" class="java.lang.String"/>
+	<field name="noinv" class="java.lang.String"/>
+	<field name="period" class="java.lang.String"/>
+	<field name="doctypectk" class="java.lang.String"/>
+	<field name="vendcodedocnum" class="java.lang.String"/>
+	<field name="doctypegrp" class="java.lang.String"/>
+	<field name="peripara" class="java.lang.String"/>
+	<field name="periparatxt" class="java.lang.String"/>
+	<field name="operator" class="java.lang.String"/>
+	<field name="custommerjdl" class="java.lang.String"/>
+	<field name="tglctk" class="java.lang.String"/>
+	<field name="custommer" class="java.lang.String"/>
+	<variable name="curramt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="totoriamt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="totcuramt" class="java.lang.Double" resetType="Group" resetGroup="vendorgrup">
+		<variableExpression><![CDATA[$V{curramt}]]></variableExpression>
+	</variable>
+	<variable name="sumvendor" class="java.lang.Double" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{custmrname}]]></variableExpression>
+	</variable>
+	<variable name="suminiamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "IN" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumcnamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "CN" ) ?  $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumdniamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "DN" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumitamt" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{doctype}.equals( "IT" ) ?  $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="suminaamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "IN3" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumadaamt" class="java.lang.Double" incrementType="Group" incrementGroup="doctypegrp" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctypegrp}.equals( "DN3" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumrcpamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{JAP}.equals( "2" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="gtoriamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="gtcurramt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{originalammount}]]></variableExpression>
+	</variable>
+	<variable name="suminvamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{JAP}.equals( "1" ) || $F{JAP}.equals( "4" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumadhamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{JAP}.equals( "3" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<variable name="sumlainamt" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{JAP}.equals( "4" ) ? $F{originalammount} : 0]]></variableExpression>
+	</variable>
+	<group name="vendorgrup" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{custommer}]]></groupExpression>
+		<groupHeader>
+			<band height="15">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="918f0768-5a40-48d9-a08a-e7d2cf0cde7b" x="0" y="1" width="427" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custommer}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="13">
+				<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+					<reportElement uuid="636b54c1-5834-4cf3-adda-eb9abd10b9dc" isPrintRepeatedValues="false" x="513" y="2" width="71" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totoriamt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="1e3a92e8-3ce1-4f74-8429-81ef5bebcbcf" isPrintRepeatedValues="false" x="473" y="2" width="40" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+					</textElement>
+					<text><![CDATA[  Total]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="c585b550-2f66-411d-afe4-4ae56fef0fcb" x="467" y="1" width="177" height="1"/>
+				</line>
+				<textField pattern="#,##0;-#,##0">
+					<reportElement uuid="a83c2182-3169-46d9-a039-e881e0f4e0ce" isPrintRepeatedValues="false" x="584" y="2" width="62" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totcuramt}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="0ca3dbaa-ae99-47aa-bda2-b74c121fdb3e" x="300" y="2" width="167" height="10"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custmrname}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="vendcodedocnum">
+		<groupExpression><![CDATA[$F{vendcodedocnum}]]></groupExpression>
+	</group>
+	<group name="doctypegrp">
+		<groupExpression><![CDATA[$F{doctypegrp}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="65" splitType="Stretch">
+			<textField>
+				<reportElement uuid="797ff1ac-e683-4dfc-87f2-b39dfc8319c9" x="0" y="1" width="300" height="10"/>
+				<textElement textAlignment="Left">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="236e30fc-cec0-4ceb-a7fb-21b2d5531128" x="0" y="21" width="300" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tglctk}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b8a5dd88-7ae2-47e7-8674-ae41793ee2c6" x="0" y="31" width="300" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{custommerjdl}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e31658e6-95d5-4a24-af50-96e026d27698" x="1" y="51" width="299" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{periparatxt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="0265cb3e-e35b-42b9-b4f7-084156d115d6" x="0" y="41" width="300" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctypectk}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="93a5617d-b3dd-4902-888f-b742e3d77a3d" x="0" y="11" width="300" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AR - Cummstomer Transaction  Report]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="2ff1df4f-1092-4a51-bd28-84f19519de47" mode="Opaque" x="467" y="51" width="71" height="7" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement uuid="8a95d1b6-625c-40e1-ad4e-bc6aa7d03ebc" mode="Opaque" x="538" y="51" width="61" height="7" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="13" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="689b072e-ec61-4577-a64d-e2e4bcddebee" x="0" y="2" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Doc. Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="09769a7b-d1e3-4ee6-a006-a18b9c7e9d67" x="170" y="2" width="20" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c33f10c9-959f-4084-9a50-dfd2acbb6fd1" x="250" y="2" width="50" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Doc Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="51043927-d48a-441d-bc01-e188d115073e" x="300" y="2" width="50" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Due Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7f588526-873b-45fd-96ed-e0240a3000be" x="396" y="2" width="77" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[No Batch-Entry]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9207f641-7970-4f31-aeeb-3c83d8283d06" x="473" y="2" width="40" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Term]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="bdc8b302-a70d-426a-aee0-053a0d3dccda" x="513" y="2" width="71" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Original Amount]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="6a95ef09-ab37-4ff9-9da2-7811b0cc9171" x="1" y="1" width="643" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="1e678d60-e45c-4cac-85cc-c477b50bb284" x="1" y="12" width="643" height="1"/>
+				<graphicElement>
+					<pen lineStyle="Double"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement uuid="82dfd868-023b-4b10-a2fb-fc778f397d23" x="584" y="2" width="63" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Current Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5172d2c4-bcf2-49ae-9876-d5c31833781e" x="190" y="2" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Order Number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1e3ac5d9-dabf-4f29-be60-3bafe7736ea9" x="350" y="2" width="46" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Period]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="cee4e61c-b354-4df2-9c0f-8d9fab8d55bf" isPrintRepeatedValues="false" x="0" y="2" width="170" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendcodedocnum"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docnum}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="19964e27-e0d4-4a83-8954-42e1e958673e" x="170" y="2" width="20" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{doctype}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="472df5fe-be45-4391-aa99-5c883af718b8" isPrintRepeatedValues="false" x="300" y="2" width="50" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendcodedocnum"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docduedate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="3f482bcc-49b5-456c-aba2-ea6fb307a1eb" x="396" y="2" width="77" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{batchentry}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="9e17139a-73be-4af4-b5b3-7602a722fcbe" x="473" y="2" width="40" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dayover}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="75283444-01d6-4ccf-888e-69a56ec55a94" x="513" y="2" width="71" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{originalammount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ad3c0902-ccbf-43bf-a6ca-a4e04d8e3686" isPrintRepeatedValues="false" x="250" y="2" width="50" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendcodedocnum"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="c1fae2fe-5ebc-4e18-9fdb-584202c1d0c7" x="584" y="2" width="62" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{originalammount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4b8fe85e-f3c7-4fe9-9f5b-bf33fdc66434" x="190" y="2" width="60" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orderno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="6e8806fc-4cf6-42e8-8169-957c937bfdea" isPrintRepeatedValues="false" x="350" y="2" width="46" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendcodedocnum"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{period}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="11" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="211d468a-7214-4e47-b297-aa7c998d2974" x="0" y="1" width="170" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="105" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="2473484a-7431-4a93-a5d9-d127e372c323" x="0" y="4" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isUnderline="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[SUMMARY ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="82cbda5b-7f32-4976-ab94-d51cf1669d91" x="0" y="14" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Total :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7b4ede0a-ba96-4319-b1c8-661a31c89af1" x="0" y="24" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Invoice Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="56fc7835-360d-4e60-bcc8-6b51718e8d50" x="0" y="34" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Credit Note Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9dc537b3-959a-48f8-a120-a570660a51cd" x="0" y="44" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Debit Note Ammount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="eb0d3d81-5a31-4f1a-a5c1-900c8fb1eb37" x="0" y="54" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Interest Ammount]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="9e07a5c7-242a-4624-9b23-39f4b079e5fc" x="170" y="14" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumvendor}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report" pattern="#,##0;-#,##0">
+				<reportElement uuid="9e2bc2de-f6d4-4687-9bb3-20c230e76e0b" x="170" y="24" width="180" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{suminiamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="3ace5e53-f9bd-4d93-b253-0db3252a3d83" x="170" y="34" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumcnamt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="72b982e6-89a9-4c28-9eed-2c0b5c3c12bf" x="170" y="44" width="180" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumdniamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="8a96710f-4671-49c9-adf1-933004441000" x="170" y="54" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumitamt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="cf2ae094-a549-49aa-bb8a-b1348a210078" x="0" y="74" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Receipt Ammount]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="27ea008d-9a2a-40b4-8a57-c665ef0d6d70" x="170" y="74" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumrcpamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="d004b618-d3dc-4c14-9d64-ead16e43ddee" x="170" y="64" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{suminvamt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="82dc9dbc-4686-4828-9874-965569849ed1" x="0" y="64" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Custommer Invoice Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ed283c34-d58c-47d7-a392-b68c12c4df0f" x="0" y="84" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Adjustmen Ammount]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0">
+				<reportElement uuid="f9fbd57a-3195-4ed3-9afd-a3aff38e5324" x="170" y="84" width="180" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{sumadhamt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="a4a9c005-39af-47a7-ae92-ef366953ebff" x="170" y="94" width="180" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="vendorgrup"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{gtoriamt}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f778e0e6-d59a-40cb-8277-80c8961619be" x="0" y="94" width="170" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Customer Total Transaction Amount ]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="c14a66f9-593c-4f9d-a8df-885023483c8a" x="0" y="1" width="643" height="1"/>
+			</line>
+		</band>
+	</summary>
+</jasperReport>

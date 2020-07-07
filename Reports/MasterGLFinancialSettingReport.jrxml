@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterGLFinancialSettingReport" language="groovy" pageWidth="740" pageHeight="570" orientation="Landscape" columnWidth="700" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jdlrpt" class="java.lang.String">
+		<defaultValueExpression><![CDATA["MBOBP OH1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.docentry,a.reportname,a.reportdesc,
+       b.visorder,b.rowno,b.columntype,b.levelno,
+       b.textheader,b.allowformulation,b.summary,
+       b.textformulation,b.showdata,
+       'GL - FINANCIAL SETTING REPORT' jdl,
+       concat('Name Of Financial Report :    ',a.reportname,'-',a.reportdesc)namalaporan,
+       concat('Date Of Report Made        :    ',cast(now() as character))tglcetak
+FROM setting_financial_rpt a
+INNER JOIN setting_financial_rpt_detail1 b
+          ON b.docentry=a.docentry
+WHERE a.reportname=$P{jdlrpt}
+order by a.docentry,b.visorder]]>
+	</queryString>
+	<field name="docentry" class="java.lang.Integer"/>
+	<field name="reportname" class="java.lang.String"/>
+	<field name="reportdesc" class="java.lang.String"/>
+	<field name="visorder" class="java.lang.Integer"/>
+	<field name="rowno" class="java.lang.Integer"/>
+	<field name="columntype" class="java.lang.String"/>
+	<field name="levelno" class="java.lang.Integer"/>
+	<field name="textheader" class="java.lang.String"/>
+	<field name="allowformulation" class="java.lang.String"/>
+	<field name="summary" class="java.lang.String"/>
+	<field name="textformulation" class="java.lang.String"/>
+	<field name="showdata" class="java.lang.String"/>
+	<field name="jdl" class="java.lang.String"/>
+	<field name="namalaporan" class="java.lang.String"/>
+	<field name="tglcetak" class="java.lang.String"/>
+	<group name="docentry">
+		<groupExpression><![CDATA[$F{docentry}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="31" splitType="Stretch">
+			<textField>
+				<reportElement x="1" y="1" width="320" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{jdl}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="11" width="321" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{tglcetak}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="21" width="322" height="10" isPrintInFirstWholeBand="true"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{namalaporan}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="661" y="21" width="39" height="10" backcolor="#FFFFFF"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="431" y="21" width="230" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="14" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="2" width="40" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vis. Order]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="2" width="30" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Row No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="71" y="2" width="30" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Col. Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="101" y="2" width="30" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Level No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="131" y="2" width="200" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Text Header]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="331" y="2" width="70" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Allow Formulation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="401" y="2" width="30" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summary]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="431" y="2" width="230" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ Text Formulation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="661" y="2" width="40" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Show Data]]></text>
+			</staticText>
+			<line>
+				<reportElement x="1" y="1" width="700" height="1"/>
+			</line>
+			<line>
+				<reportElement x="1" y="13" width="700" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="1" width="40" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{visorder}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="41" y="1" width="30" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{rowno}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="71" y="1" width="30" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{columntype}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="101" y="1" width="30" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{levelno}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="131" y="1" width="200" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textheader}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="331" y="1" width="70" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{allowformulation}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="401" y="1" width="30" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{summary}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="431" y="1" width="230" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textformulation}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="661" y="1" width="40" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{showdata}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="11" splitType="Stretch">
+			<staticText>
+				<reportElement x="1" y="1" width="61" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Operator : ]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

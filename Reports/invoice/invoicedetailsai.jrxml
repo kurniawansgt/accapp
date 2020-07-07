@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="invoicedetailsai" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="pYop" class="java.lang.String"/>
+	<parameter name="pMop" class="java.lang.String"/>
+	<parameter name="pCompany" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+	if(@brand <> a.kdbrand, @row:=1, @row:=@row+1) nomor,
+	@brand,
+	@brand:=a.kdbrand,
+	a.*,date(NOW()) tglNow,
+	(hpd-discount) dpp
+FROM
+(
+	SELECT a.`Company`,
+		a.yop,
+		a.`Mop`,
+		a.`NoInvoice`,
+		b.`noFakturPajak`,
+		a.`KdBrand`,
+		a.`NamaBrand`,
+		a.kdmb,
+		a.kdSAI,
+		a.itemname,
+		a.qty,
+		a.hpd,
+		a.discount,
+		a.hjp,
+		qty * hpd  total,
+		AccountMngr
+
+	FROM bankjurnal.tariksales a
+		INNER JOIN bankjurnal.`tariksales_invoice_hdr` b
+		ON a.`NoInvoice` = b.`noInvoice` AND a.`Company` = b.`Company`
+	WHERE a.yop = $P{pYop} AND a.mop = $P{pMop} AND a.company = $P{pCompany}
+) a, (SELECT @row:=0) b, (select @brand = '') c
+ORDER BY a.kdbrand, a.kdmb]]>
+	</queryString>
+	<field name="nomor" class="java.lang.Long"/>
+	<field name="@brand" class="java.lang.Object"/>
+	<field name="@brand:=a.kdbrand" class="java.lang.String"/>
+	<field name="Company" class="java.lang.String"/>
+	<field name="yop" class="java.lang.String"/>
+	<field name="Mop" class="java.lang.String"/>
+	<field name="NoInvoice" class="java.lang.String"/>
+	<field name="noFakturPajak" class="java.lang.String"/>
+	<field name="KdBrand" class="java.lang.String"/>
+	<field name="NamaBrand" class="java.lang.String"/>
+	<field name="kdmb" class="java.lang.String"/>
+	<field name="kdSAI" class="java.lang.String"/>
+	<field name="itemname" class="java.lang.String"/>
+	<field name="qty" class="java.lang.Integer"/>
+	<field name="hpd" class="java.lang.Integer"/>
+	<field name="discount" class="java.lang.Integer"/>
+	<field name="hjp" class="java.lang.Integer"/>
+	<field name="total" class="java.lang.Long"/>
+	<field name="AccountMngr" class="java.lang.String"/>
+	<field name="tglNow" class="java.sql.Date"/>
+	<field name="dpp" class="java.lang.Long"/>
+	<variable name="vSubTotalUnit" class="java.lang.Double" resetType="Group" resetGroup="brand" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty}]]></variableExpression>
+	</variable>
+	<variable name="vSubTotalValue" class="java.lang.Double" resetType="Group" resetGroup="brand" calculation="Sum">
+		<variableExpression><![CDATA[$F{total}]]></variableExpression>
+	</variable>
+	<variable name="vTotalUnit" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{qty}]]></variableExpression>
+	</variable>
+	<variable name="vTotalValue" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{total}]]></variableExpression>
+	</variable>
+	<group name="brand">
+		<groupExpression><![CDATA[$F{KdBrand}]]></groupExpression>
+		<groupHeader>
+			<band height="28">
+				<textField>
+					<reportElement x="10" y="0" width="48" height="20"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{KdBrand}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="58" y="0" width="100" height="20"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{NamaBrand}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="22" width="555" height="1"/>
+				</line>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="34">
+				<textField pattern="#,##0">
+					<reportElement x="340" y="7" width="43" height="20"/>
+					<textElement textAlignment="Right"/>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{vSubTotalUnit}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="7" width="555" height="1"/>
+				</line>
+				<textField pattern="#,##0">
+					<reportElement x="458" y="8" width="97" height="20"/>
+					<textElement textAlignment="Right"/>
+					<textFieldExpression class="java.lang.Double"><![CDATA[$V{vSubTotalValue}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="41" y="8" width="36" height="20"/>
+					<textElement>
+						<font isItalic="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{KdBrand}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="8" width="38" height="20"/>
+					<textElement>
+						<font isItalic="true"/>
+					</textElement>
+					<text><![CDATA[Total]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="77" y="7" width="162" height="20"/>
+					<textElement>
+						<font isItalic="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{NamaBrand}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="29" width="555" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<textField>
+				<reportElement x="139" y="50" width="100" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{pYop}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="10" y="10" width="330" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PT. MARTINA BERTO]]></text>
+			</staticText>
+			<textField pattern="">
+				<reportElement x="77" y="50" width="62" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{pMop}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="10" y="50" width="67" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PERIODE : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="10" y="30" width="330" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DETAIL SALES KE PT. SAI INDONESIA PUSAT]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="56" splitType="Stretch">
+			<staticText>
+				<reportElement x="293" y="5" width="104" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[INVOICE]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="409" y="25" width="146" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{noFakturPajak}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="293" y="25" width="104" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FAKTUR PAJAK]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="409" y="5" width="146" height="20"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{NoInvoice}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="397" y="5" width="12" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="397" y="25" width="12" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="31" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="26" width="555" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="5" width="555" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="16" y="6" width="42" height="20"/>
+				<textElement/>
+				<text><![CDATA[No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="58" y="5" width="52" height="20"/>
+				<textElement/>
+				<text><![CDATA[Kode MB]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="110" y="5" width="48" height="20"/>
+				<textElement/>
+				<text><![CDATA[PLU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="158" y="7" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[Item Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="7" width="43" height="20"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[QTY]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="383" y="6" width="84" height="20"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[HPD]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="467" y="6" width="88" height="20"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			<textField>
+				<reportElement x="58" y="0" width="52" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{kdmb}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="158" y="0" width="182" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{itemname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="340" y="0" width="43" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="383" y="0" width="75" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$F{hpd}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="467" y="0" width="88" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="10" y="0" width="48" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.Long"><![CDATA[$F{nomor}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="0" width="48" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{kdSAI}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="30" splitType="Stretch">
+			<textField>
+				<reportElement x="436" y="0" width="80" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="516" y="0" width="40" height="20"/>
+				<textElement/>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="153">
+			<textField>
+				<reportElement x="393" y="110" width="143" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{AccountMngr}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="393" y="130" width="143" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
+				<text><![CDATA[Accounting Manager]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="393" y="39" width="43" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
+				<text><![CDATA[Jakarta, ]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy">
+				<reportElement x="436" y="39" width="100" height="20"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[$F{tglNow}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="555" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="24" width="555" height="1"/>
+			</line>
+			<textField pattern="#,##0">
+				<reportElement x="436" y="1" width="119" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{vTotalValue}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="313" y="0" width="70" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{vTotalUnit}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[Total Keseluruhan]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

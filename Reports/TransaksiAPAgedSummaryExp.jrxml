@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransaksiAPAgingSummaryExp" pageWidth="612" pageHeight="792" whenNoDataType="BlankPage" columnWidth="594" leftMargin="9" rightMargin="9" topMargin="15" bottomMargin="15" isSummaryWithPageHeaderAndFooter="true" isIgnorePagination="true" uuid="5687e1d6-d3a6-465f-ae84-80bdaf1f2667">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Admin"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vendnofr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="vendnoto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ageasof" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012-01-31"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accsetcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="accsetcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="docdate" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012-07-31"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["07"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="format" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cutoffby" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nonaktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["NA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.vendcode, a.vendname, a.periode, a.cmpnyid,
+	SUM(a.Current) AS Current ,SUM(a.1_30) AS 1_30,
+	SUM(a.31_60) AS 31_60,SUM(a.61_90) AS 61_90,
+	SUM(a.Over_90) AS Over_90,SUM(a.ttl_overdue) AS ttl_overdue,SUM(a.ttl_ap) AS ttl_ap
+FROM
+(
+SELECT a.vendcode , b.vendname,
+   a.cmpnyid,
+   a.docduedate docdate,
+      case when  $P{cutoffby}=0 then $P{docdate}
+            else concat($P{mop},'/',$P{yop})
+       end periode,
+       case when left(a.docduedate,10)>=$P{ageasof}
+            then doctotalamtr else 0 end Current,
+       case when ((DATEDIFF($P{ageasof}, left(a.docduedate,10))<=30)
+                 and left(a.docduedate,10)<$P{ageasof})
+            then doctotalamtr else 0 end 1_30,
+       case when ((DATEDIFF($P{ageasof}, left(a.docduedate,10))>30) and
+                  (DATEDIFF($P{ageasof}, left(a.docduedate,10))<=60))
+                 and left(a.docduedate,10)<$P{ageasof}
+            then doctotalamtr else 0 end 31_60,
+       case when ((DATEDIFF($P{ageasof}, left(a.docduedate,10))>60) and
+                  (DATEDIFF($P{ageasof}, left(a.docduedate,10))<=90))
+                 and left(a.docduedate,10)<$P{ageasof}
+            then doctotalamtr else 0 end 61_90,
+       case when (DATEDIFF($P{ageasof}, left(a.docduedate,10))>90)
+                 and left(a.docduedate,10)<$P{ageasof}
+            then doctotalamtr else 0 end  Over_90,
+       CASE WHEN left(a.docduedate,10)<$P{ageasof}
+            THEN doctotalamtr ELSE 0 END ttl_overdue,
+       doctotalamtr ttl_ap
+FROM ap_invobl_hist a
+inner join ap_vendor b
+	on a.vendcode=b.vendcode
+LEFT JOIN ap_accset c
+        ON c.accsetcode=b.accsetcode
+	and b.accsetcode BETWEEN  if($P{accsetcodefr}='',(select accsetcode from ap_accset a order by accsetcode asc limit 1),$P{accsetcodefr})
+	AND if($P{accsetcodeto}='',(select accsetcode from ap_accset a order by accsetcode desc limit 1),$P{accsetcodeto})
+
+where CONCAT(a.yop_hist,a.mop_hist)=CONCAT($P{yop},$P{mop}) AND
+      (a.vendcode BETWEEN  if($P{vendnofr}='',(select a.vendcode from ap_vendor a order by a.vendcode asc limit 1),$P{vendnofr})
+                  AND if($P{vendnoto}='',(select a.vendcode from ap_vendor a order by a.vendcode desc limit 1),$P{vendnoto}))
+       and (case when $P{cutoffby}=0 then a.docdate <=$P{docdate}
+                    else (CONCAT(CAST(a.yop AS CHARACTER),IF(a.mop<10,CONCAT('0',CAST(a.mop AS CHARACTER)),
+                          CAST(a.mop AS CHARACTER))<=CONCAT($P{yop},$P{mop})))
+            end)
+       and (cast(b.active AS character)=$P{aktifsts} or cast(b.active as character)=$P{nonaktifsts})
+       and (b.accsetcode Between $P{accsetcodefr} and $P{accsetcodeto})
+       and b.hold='0'
+) a
+where a.ttl_overdue<>0 or a.Current<>0 or a.1_30<>0 or a.31_60<>0 or a.61_90<>0 or a.Over_90<>0 or a.ttl_ap<>0
+
+GROUP BY vendcode]]>
+	</queryString>
+	<field name="vendcode" class="java.lang.String"/>
+	<field name="vendname" class="java.lang.String"/>
+	<field name="periode" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="Current" class="java.math.BigDecimal"/>
+	<field name="1_30" class="java.math.BigDecimal"/>
+	<field name="31_60" class="java.math.BigDecimal"/>
+	<field name="61_90" class="java.math.BigDecimal"/>
+	<field name="Over_90" class="java.math.BigDecimal"/>
+	<field name="ttl_overdue" class="java.math.BigDecimal"/>
+	<field name="ttl_ap" class="java.math.BigDecimal"/>
+	<variable name="totaloverdue" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttl_overdue}]]></variableExpression>
+	</variable>
+	<variable name="current" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{Current}]]></variableExpression>
+	</variable>
+	<variable name="1to30" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{1_30}]]></variableExpression>
+	</variable>
+	<variable name="31to60" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{31_60}]]></variableExpression>
+	</variable>
+	<variable name="61to90" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{61_90}]]></variableExpression>
+	</variable>
+	<variable name="Over90" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{Over_90}]]></variableExpression>
+	</variable>
+	<variable name="totalpayables" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{ttl_ap}]]></variableExpression>
+	</variable>
+	<variable name="grandtotal_overdue" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$V{totaloverdue}]]></variableExpression>
+	</variable>
+	<variable name="grandtotal_payables" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$V{totalpayables}]]></variableExpression>
+	</variable>
+	<variable name="tittle" class="java.lang.String" resetType="None">
+		<variableExpression><![CDATA[$P{format}.equals( "0" ) ? "AP - Aged Payables by Doc. Date (APAPAYSY)" :"AP - Aged Payables by Due Date (APAPAYSY)"]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="86" splitType="Stretch">
+			<textField>
+				<reportElement uuid="08595ca5-5d2d-4054-9ab9-923300fc639a" x="0" y="1" width="229" height="12"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="becdb09d-eb1b-4f0a-90e8-d91422eeaa4c" x="0" y="13" width="229" height="12"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Report AP Aged Payables (Doc.Date)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a02a48c2-cabf-4657-864f-5db596ef427b" x="0" y="25" width="169" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vendor No                        :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="8e30ac3a-1e2d-487c-8baf-843943cf46b6" x="169" y="25" width="60" height="12"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{vendnofr}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a42bd0ea-b1e1-4b3f-b1cd-f358a36f2c60" x="229" y="25" width="60" height="12"/>
+				<textElement>
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{vendnoto}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="e6103b59-1082-4226-a079-51db81867a5d" x="169" y="37" width="60" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ageasof}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="c4e1b9b4-08cc-4410-8e9f-bd745c505656" x="0" y="37" width="169" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Age Transaction As Of  :            ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="724d8e74-0dcd-46f3-9fb7-c9d5a7362a3b" x="0" y="49" width="169" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cutoff By Year/Period    :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="1806c9f2-cbf4-48c3-8ad7-b4c1bbc75bf9" x="169" y="49" width="60" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{periode}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="609b5f2f-ee39-495e-a98f-3da5ad139e68" x="0" y="61" width="169" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Account Set                     :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="196d8013-73c9-40cd-b910-9619965c4b10" x="169" y="61" width="60" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{accsetcodefr}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="7766eb5e-aaf4-4af6-a00e-24685e51b66f" x="229" y="61" width="60" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{accsetcodeto}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="acdada8e-bdf1-4439-b6b9-ef8de1b0d7cb" x="0" y="73" width="169" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Print Transactions In     :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8980df17-c8fb-4095-830f-04a9f5c1977a" x="169" y="73" width="60" height="12"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summary]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="18" splitType="Stretch">
+			<line>
+				<reportElement uuid="29b179be-4d78-4e1d-bc79-a8378e7a4d6c" x="0" y="1" width="591" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="6f0dde05-a147-4419-8e28-dbf26d92e2a6" x="0" y="2" width="35" height="14" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vendor ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="442752cc-7085-487f-9d7b-6a6ab752177b" x="35" y="2" width="134" height="14"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vendor Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c47a4f29-b299-4b69-b53a-b36a63f61127" x="169" y="2" width="60" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Current]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="203e2afb-30ad-4601-87c6-3f88e33b01ec" x="229" y="2" width="60" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[1 To 30]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="72f04c23-8505-49bf-8267-a67e2ae902f1" x="289" y="2" width="61" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[31 To 60]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="51e2bed8-8ab1-4716-b842-8a375e49784e" x="350" y="2" width="61" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[61 To 90]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e9f8644b-4060-4aa9-910a-30f502b8d093" x="411" y="2" width="60" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Over 90 Days]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f8f87d57-c511-480e-a25d-cddb48811e86" x="471" y="2" width="60" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Ttl. Overdue]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a656f1cc-6266-47d1-a606-dce44ad73ebe" x="531" y="2" width="61" height="14"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[Ttl. Payables]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="828b6587-88f5-44b1-97f7-a1bcce296ed9" x="0" y="17" width="591" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField pattern="###0;-###0">
+				<reportElement uuid="0b364ca0-b46e-4041-aef0-d805939a8242" x="0" y="1" width="35" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="1054cbd3-d238-41f1-b531-e1a2b50dad9f" x="35" y="1" width="134" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="41481676-d75a-4b3d-8ef7-e5c192e8d655" x="169" y="1" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Current}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="60202392-b468-41ef-b58c-dce0e0c89285" x="229" y="1" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{1_30}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="969573f9-f067-4ed8-8d5f-757fca718465" x="289" y="1" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{31_60}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="f742ea1b-6061-48a6-8873-1618158c273b" x="350" y="1" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{61_90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="52fd7406-9fba-4ea3-80df-c42eebf4df94" x="411" y="1" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{Over_90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="2c10edd4-cafe-4da9-ba2f-db0f8c59ef02" x="471" y="1" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ttl_overdue}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="58b9eba8-88a2-40d4-b2c8-455faa447126" x="531" y="1" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ttl_ap}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="11" splitType="Stretch">
+			<textField>
+				<reportElement uuid="0e034ca8-4e05-4ae7-9359-0ec96751220e" x="0" y="0" width="169" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="90a6d51c-ac7f-41da-9a7d-48239f0c93b2" mode="Transparent" x="471" y="0" width="60" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement uuid="b6101658-3395-4529-97eb-801fd2db9e5b" mode="Transparent" x="531" y="0" width="61" height="10" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="14" splitType="Stretch">
+			<line>
+				<reportElement uuid="fc5bd973-43b3-4480-aae6-9220cbaf23c4" x="1" y="1" width="591" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="d62a07e0-de36-4246-943a-81c55ce15e40" x="0" y="2" width="169" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="f5aaa7af-3984-4e52-b1f6-6d83c726329f" x="169" y="2" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{current}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="87158f60-0664-462c-a6f5-2d605db3e568" x="229" y="2" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{1to30}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="ded00ca6-8e92-4f91-b938-83a75cc5af50" x="289" y="2" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{31to60}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="4556a16e-76a4-4c84-9a8d-1005a7cae1c5" x="350" y="2" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{61to90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="80e76296-c820-439f-baeb-066bf3b48379" x="411" y="2" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{Over90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="bdcd7aff-f2dc-44bf-887f-a452cf90b4f9" x="471" y="2" width="60" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totaloverdue}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="00edb14e-9648-4716-9ac1-769660fa099e" x="531" y="2" width="61" height="12" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Arial" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalpayables}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

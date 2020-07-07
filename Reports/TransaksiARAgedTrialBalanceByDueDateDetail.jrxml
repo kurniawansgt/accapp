@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ARAgingDetail" language="groovy" pageWidth="800" pageHeight="570" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="730" leftMargin="40" rightMargin="30" topMargin="20" bottomMargin="20" isSummaryNewPage="true" uuid="1544da3a-5756-42f2-b8bf-43bd61233470">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="30"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="PieChartDataset" uuid="3819ac2c-c666-4c0d-a248-0c7ff74478cb">
+		<queryString language="SQL">
+			<![CDATA[SELECT
+             CASE WHEN LEFT(a.docduedate,7)>= LEFT(NOW(),7) THEN SUM(doctotalamtr) ELSE 0 END BJT,
+             CASE WHEN DATEDIFF(CURDATE(), a.docduedate)<=30 AND LEFT(a.docduedate,7)< LEFT(NOW(),7)
+                       THEN SUM(a.doctotalamtr) ELSE 0 END HR30,
+             CASE WHEN DATEDIFF(CURDATE(), a.docduedate)>30 AND DATEDIFF(CURDATE(),a.docduedate) <=60
+                      THEN SUM(a.doctotalamtr) ELSE 0 END HR60,
+             CASE WHEN DATEDIFF(CURDATE(),a.docduedate)>60 AND DATEDIFF(CURDATE(),a.docduedate)<=90
+                      THEN SUM(a.doctotalamtr) ELSE 0 END HR90,
+             CASE WHEN DATEDIFF(CURDATE(),a.docduedate)>90 THEN SUM(doctotalamtr) ELSE 0 END HR91
+FROM ar_invobl a
+LEFT JOIN ar_customer b
+       ON b.custmrcode=a.custmrcode
+LEFT JOIN ar_accset c
+        ON c.accsetcode=b.accsetcode
+LEFT JOIN op_tax d
+          ON d.taxcode=d.taxcode
+LEFT JOIN op_paymentterm e
+          ON e.termcode=a.termcode
+WHERE (a.custmrcode BETWEEN ' ' AND 'ZZZZZ') AND (b.accsetcode BETWEEN '' AND 'ZZZZZZ')
+             AND (a.yop = 2001 AND a.mop = 1)
+             AND a.swpaid=0
+GROUP BY a.custmrcode,b.accsetcode,a.mop,a.yop,a.docnum,a.doctype,a.docduedate
+ORDER BY a.custmrcode,b.accsetcode,a.mop,a.yop,a.docnum,a.doctype,a.docduedate]]>
+		</queryString>
+	</subDataset>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Admin"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="custmrcodefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["00000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="custmrcodeto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZZZZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="namaPT" class="java.lang.String">
+		<defaultValueExpression><![CDATA["rusdiarso"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yon" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mon" class="java.lang.String">
+		<defaultValueExpression><![CDATA["07"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tanggalasof" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2012/09/01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="aktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nonaktifsts" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select a.*,b.totcust
+from
+(
+SELECT a.custmrcode,b.custmrname custmrname,
+             a.docnum,a.doctype,
+             CASE WHEN a.doctype='4' THEN 'INV'
+                      WHEN a.doctype='5' THEN 'CN'
+                      WHEN a.doctype='6' THEN 'DN' ELSE  'INT' END typedok,
+             CAST(LEFT(a.docdate,10) AS CHARACTER) docdate,
+             CAST(LEFT(a.docduedate,10) AS CHARACTER) docduedate,a.mop,a.yop,
+             CASE WHEN LEFT(a.docduedate,10)>= CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30')))
+                               THEN SUM(doctotalamtr) ELSE 0 END BJT,
+             CASE WHEN (IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30')))),DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30')))))<=30)
+                               AND LEFT(a.docduedate,10)< CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30')))
+                       THEN SUM(a.doctotalamtr) ELSE 0 END HR30,
+
+             CASE WHEN (IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+                        IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ),
+                 DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+                 IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ))>30
+                       AND IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ),DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )) <=60 )
+                               AND (LEFT(a.docduedate,7)< CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )
+                      THEN SUM(a.doctotalamtr) ELSE 0 END HR60,
+
+             CASE WHEN (IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ),DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ))>60
+                               AND IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ),DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ))<=90)
+                               AND (LEFT(a.docduedate,10)< CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )
+                      THEN SUM(a.doctotalamtr) ELSE 0 END HR90,
+
+             CASE WHEN IF(DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )<0,
+                                   -1*DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ),DATEDIFF(a.docduedate,CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) ))>90 AND (LEFT(a.docduedate,10)< CONCAT($P{yon},'-',$P{mon},'-',IF($P{mon}='02','28',
+              IF($P{mon}='01' OR $P{mon}='03' OR $P{mon}='05' OR $P{mon}='07'  OR $P{mon}='08' OR $P{mon}='12','31','30'))) )
+                      THEN SUM(doctotalamtr) ELSE 0 END HR91,
+             SUM(a.doctotalamtr) TOTAL,
+             ABS(DATEDIFF(a.docduedate,$P{tanggalasof})) hari,a.termcode,e.duedays,
+             CONCAT(upper($P{custmrcodefr}),' TO ',upper($P{custmrcodeto}))txtcustommer,
+             CONCAT($P{yon},'-',$P{mon})txtyopmop,
+             CASE WHEN a.doctype='4' THEN SUM(doctotalamtr) ELSE 0 END TOTTYPEDOC4,
+             CASE WHEN a.doctype='5' THEN SUM(doctotalamtr) ELSE 0 END TOTTYPEDOC5,
+             CASE WHEN a.doctype='6' THEN SUM(doctotalamtr) ELSE 0 END TOTTYPEDOC6,
+             CASE WHEN a.doctype='7' THEN SUM(doctotalamtr) ELSE 0 END TOTTYPEDOC7
+FROM ar_invobl a
+LEFT JOIN ar_customer b ON b.custmrcode=a.custmrcode
+LEFT JOIN op_paymentterm e ON e.termcode=a.termcode
+WHERE (CAST(b.active AS CHARACTER)=$P{aktifsts} OR CAST(b.active AS CHARACTER)=$P{nonaktifsts}) AND
+(a.custmrcode BETWEEN $P{custmrcodefr} AND $P{custmrcodeto})
+      AND a.doctotalamtr<>0
+      GROUP BY a.custmrcode,a.mop,a.yop,a.docnum,a.doctype,a.docduedate
+)a
+LEFT JOIN
+(
+SELECT a.custmrcode,b.custmrname,SUM(a.doctotalamtr) totcust
+FROM ar_invobl a
+LEFT JOIN ar_customer b
+       ON b.custmrcode=a.custmrcode
+LEFT JOIN op_paymentterm e
+          ON e.termcode=a.termcode
+WHERE (CAST(b.active AS CHARACTER)=$P{aktifsts} OR CAST(b.active AS CHARACTER)=$P{nonaktifsts}) AND
+(a.custmrcode BETWEEN $P{custmrcodefr} AND $P{custmrcodeto})
+      AND a.doctotalamtr<>0
+      GROUP BY a.custmrcode
+)b
+ON b.custmrcode=a.custmrcode
+WHERE b.totcust<>0
+ORDER BY a.custmrcode,a.docdate,a.yop,a.mop,a.docnum,a.doctype,a.docduedate]]>
+	</queryString>
+	<field name="custmrcode" class="java.lang.String"/>
+	<field name="custmrname" class="java.lang.String"/>
+	<field name="docnum" class="java.lang.String"/>
+	<field name="doctype" class="java.lang.String"/>
+	<field name="typedok" class="java.lang.String"/>
+	<field name="docdate" class="java.lang.String"/>
+	<field name="docduedate" class="java.lang.String"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="BJT" class="java.math.BigDecimal"/>
+	<field name="HR30" class="java.math.BigDecimal"/>
+	<field name="HR60" class="java.math.BigDecimal"/>
+	<field name="HR90" class="java.math.BigDecimal"/>
+	<field name="HR91" class="java.math.BigDecimal"/>
+	<field name="TOTAL" class="java.math.BigDecimal"/>
+	<field name="hari" class="java.lang.Integer"/>
+	<field name="termcode" class="java.lang.String"/>
+	<field name="duedays" class="java.lang.Integer"/>
+	<field name="txtcustommer" class="java.lang.String"/>
+	<field name="txtyopmop" class="java.lang.String"/>
+	<field name="TOTTYPEDOC4" class="java.math.BigDecimal"/>
+	<field name="TOTTYPEDOC5" class="java.math.BigDecimal"/>
+	<field name="TOTTYPEDOC6" class="java.math.BigDecimal"/>
+	<field name="TOTTYPEDOC7" class="java.math.BigDecimal"/>
+	<field name="totcust" class="java.math.BigDecimal"/>
+	<variable name="BJTCR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{BJT}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="HR30CR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{HR30}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="HR91CR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{HR91}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="HR60CR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{HR60}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="HR90CR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{HR90}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="TOTCR" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{TOTAL}]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="totcustommer" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{TOTAL}]]></variableExpression>
+	</variable>
+	<variable name="TOTBJT" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{BJT}]]></variableExpression>
+	</variable>
+	<variable name="TOTHR30" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR30}]]></variableExpression>
+	</variable>
+	<variable name="TOTHR60" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR60}]]></variableExpression>
+	</variable>
+	<variable name="TOTHR90" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR90}]]></variableExpression>
+	</variable>
+	<variable name="TOTHR91" class="java.lang.Double" resetType="Group" resetGroup="custommercode" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR91}]]></variableExpression>
+	</variable>
+	<variable name="GTBJT" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{BJT}]]></variableExpression>
+	</variable>
+	<variable name="GTHR30" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR30}]]></variableExpression>
+	</variable>
+	<variable name="GTHR60" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR60}]]></variableExpression>
+	</variable>
+	<variable name="GTHR90" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR90}]]></variableExpression>
+	</variable>
+	<variable name="GTHR91" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{HR91}]]></variableExpression>
+	</variable>
+	<variable name="GTTOT" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{TOTAL}]]></variableExpression>
+	</variable>
+	<variable name="TypeDoc4_Count" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "4" ) ? 1 : 0]]></variableExpression>
+		<initialValueExpression><![CDATA[]]></initialValueExpression>
+	</variable>
+	<variable name="TypeDoc5_count" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "5" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="TypeDoc6_Count" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "6" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="TypeDoc7_Count" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "7" ) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="SumTD4" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "4" ) ? $F{TOTTYPEDOC4} : 0]]></variableExpression>
+	</variable>
+	<variable name="SumTD5" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "5" ) ? $F{TOTTYPEDOC5} : 0]]></variableExpression>
+	</variable>
+	<variable name="SumTD6" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "6" ) ? $F{TOTTYPEDOC6} : 0]]></variableExpression>
+	</variable>
+	<variable name="SumTD7" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{doctype}.equals( "7" ) ? $F{TOTTYPEDOC7} : 0]]></variableExpression>
+	</variable>
+	<variable name="CUSTOMMER_COUNT" class="java.lang.Integer" incrementType="Group" incrementGroup="custommercode" calculation="Count">
+		<variableExpression><![CDATA[$F{custmrcode}]]></variableExpression>
+	</variable>
+	<variable name="currentPage" class="java.lang.Integer" resetType="Page">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<group name="custommercode" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{custmrname}]]></groupExpression>
+		<groupHeader>
+			<band height="14">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="2dc8a0c7-468f-4b04-a810-d04c4f493fbc" x="0" y="1" width="47" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custmrcode}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement uuid="499728b7-bbc0-4297-9fe7-369192608122" x="47" y="1" width="238" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+					<textElement verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{custmrname}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="14">
+				<rectangle>
+					<reportElement uuid="8f419b73-cf89-40fe-985e-8a39057fcad3" x="285" y="1" width="390" height="12" forecolor="#CCCCCC" backcolor="#CCCCCC"/>
+				</rectangle>
+				<textField>
+					<reportElement uuid="d834487d-146f-4f67-941c-4927b11806ea" x="173" y="1" width="112" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+						<font size="6" isBold="true"/>
+						<paragraph rightIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA["TOTAL "+$F{custmrcode}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement uuid="9422ba1a-9b12-404d-b100-aacc0c6de16f" x="610" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totcustommer}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement uuid="a9ab3013-a528-4788-819d-263b9f0dd4cc" x="545" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTHR91}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement uuid="19755a3a-9b60-4589-862b-a390ab3795e5" x="480" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTHR90}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement uuid="047672f7-c6bf-4436-bb6f-a70e558c9297" x="415" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTHR60}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement uuid="6b115480-ad8a-49d6-b022-d186ca28de0d" x="350" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTHR30}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement uuid="24605d94-9cca-4f68-b0a2-a5ef9bc347f2" x="285" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="custommercode"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true" isStrikeThrough="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTBJT}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="47" splitType="Stretch">
+			<textField>
+				<reportElement uuid="c67fcfa4-e45e-4472-a3e5-76387d03a73a" x="0" y="1" width="350" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{namaPT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b8c4b59c-a966-4730-9f58-f6055b3ef3dc" x="0" y="16" width="350" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[AR-Aged Report Detail by Due Date]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="dc45a72c-10d9-4d59-aba0-34780bb55661" x="0" y="31" width="350" height="15" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Customer: "+$F{txtcustommer}+" Periode: "+$P{tanggalasof}+" "+$P{yon}+"/"+$P{mon}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="14" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="a778cd94-bbde-45c9-a07a-a8a2585caa80" x="0" y="0" width="675" height="14" forecolor="#CCCCCC" backcolor="#CCCCCC"/>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="f4c85296-9ef1-4a38-adc9-c731d4def1eb" style="Column header" x="0" y="1" width="47" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[TYPE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="91901807-264e-4dd5-b9ed-05978a804543" style="Column header" x="47" y="1" width="66" height="12" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[NUMBER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e9b978f4-116f-4676-afea-22af88b81fca" style="Column header" x="113" y="1" width="60" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[DATE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="153f033f-a40b-464e-b744-c90cc7a2a4e3" style="Column header" x="173" y="1" width="60" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[DUE DATE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7be4351e-08bd-4ea7-af09-320209c1a1b5" style="Column header" x="233" y="1" width="52" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<text><![CDATA[TERM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="18660d99-db60-4f9a-8362-1588bc0932a7" style="Column header" x="285" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[CURRENT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="12c96c16-afea-41d1-8d04-e8704321aba7" style="Column header" x="350" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[1 to 30 DAYS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="69ea4192-e310-4523-a494-6ba7fd7ab91b" style="Column header" x="415" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[31 to  60 DAYS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="50a80fc5-2d01-4cf9-bc37-443023a80cb4" style="Column header" x="480" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[61 to 90 DAYS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7c0003cd-fb5a-43f6-a0f2-7b86571f3d9f" style="Column header" x="545" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[ > 90 DAYS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d4d6501e-4f01-402e-99a6-f91e67bf41bd" style="Column header" x="610" y="1" width="65" height="12" forecolor="#000000"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<text><![CDATA[TOTAL]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement uuid="e87871a5-4778-4fec-b02a-fe1042486711" x="0" y="1" width="47" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{typedok}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8d7c80bf-b82d-496c-ac54-fcecb540297a" x="47" y="1" width="66" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docnum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="77c8114c-4c4c-4a21-8fe2-7da07cf0cfca" x="113" y="1" width="60" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="578bef77-8090-4ebf-ad75-68273fc8d063" x="173" y="1" width="60" height="12" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docduedate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="5562a491-2a3c-4a0f-aeb9-7f94aaddb278" style="Detail" positionType="Float" x="233" y="1" width="52" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{duedays}+"/"+$F{hari}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="ecd6cd62-9a58-4685-be32-bbd5350fb9ed" style="Detail" positionType="Float" x="285" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{BJT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="68bc4dd2-2368-4030-8d4c-0abe327fc381" style="Detail" positionType="Float" x="350" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HR30}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="104cf55c-f0ae-4bb8-919d-f47870394da1" style="Detail" positionType="Float" x="415" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HR60}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="d63313e8-7f50-4adb-ab45-e3c6a878a510" style="Detail" positionType="Float" x="480" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HR90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="5d3ce323-cb83-45fd-a3c1-24a7af6d686e" style="Detail" positionType="Float" x="545" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HR91}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement uuid="3e53f227-38ab-4743-93b2-354324d6c717" style="Detail" positionType="Float" x="610" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype} !="5"]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" pdfFontName="Helvetica"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{TOTAL}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="48c45ccf-5e7a-4d1f-b9d9-bedf09224c5d" x="285" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BJTCR}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="15c6c1c4-5e19-4898-bfff-39c49dadf195" x="545" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{HR91CR}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="b9e00930-e9c5-434a-8071-918516b9bf18" x="350" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{HR30CR}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="3be5f0b9-4c65-4c42-a16e-a7c1b50ce946" x="415" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{HR60CR}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="60512463-8f87-4643-9fbc-5a09e40fdea6" x="480" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{HR90CR}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0">
+				<reportElement uuid="80aeba55-79d5-4bc5-8798-6dc319629f0c" x="610" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{doctype}.equals( "5" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{TOTCR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement uuid="8505c357-0aa3-4e19-be6f-65022ac80b41" x="0" y="1" width="233" height="12"/>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dicetak oleh: "+$P{operator}+' '+(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")).format(new Date())+" (ARAgingDetail)"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto">
+				<reportElement uuid="e468d7b6-b840-4267-abcc-4101645ffe05" mode="Opaque" x="545" y="1" width="130" height="12" isPrintInFirstWholeBand="true" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{currentPage}+" of "+$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="14">
+			<rectangle>
+				<reportElement uuid="88f01f37-15ab-4732-b9ec-79c11712bf9c" x="285" y="1" width="390" height="12" forecolor="#CCCCCC" backcolor="#CCCCCC"/>
+			</rectangle>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="73abe1bc-76fd-4c76-95fc-ee0bbdda0e69" x="610" y="1" width="65" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTTOT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="8b4c8c80-0886-42d1-9f89-4062d9c23ad6" x="545" y="1" width="65" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTHR91}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="a47100fb-3dcf-40a6-9847-8c791e147fa7" x="480" y="1" width="65" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTHR90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="6dfb90ab-e00d-4176-a26c-e215bc567c7d" x="415" y="1" width="65" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTHR60}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="0a3ec96a-489e-494b-82d9-4604252a883c" x="350" y="1" width="65" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTHR30}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="166fa0be-60f7-4745-ae91-1a62819d6e48" x="285" y="1" width="65" height="12" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{GTBJT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f0ac91de-490b-4a8d-b593-742b252dfa55" x="173" y="1" width="112" height="12"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="4"/>
+				</textElement>
+				<text><![CDATA[GRAND TOTAL]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band height="64" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="840ac725-5f69-45e7-b671-ecd07715039d" x="0" y="1" width="233" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[SUMMARY]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c58e9403-1ac3-4508-bef1-7d36252ffe4a" x="0" y="12" width="113" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL CUSTOMER ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5cd93fd0-9b74-43c7-98d8-f1a4cfdde3eb" x="0" y="22" width="113" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL INVOICE DOCUMENT ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="28ed7b38-16ec-4061-be20-919f0dd2954f" x="0" y="32" width="113" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL CREDIT NOTE DOCUMENT ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e637b74a-27a9-4d7b-81b7-1a230b703c5e" x="0" y="42" width="113" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL DEBIT NOTE DOCUMENT ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="58fc95ad-488c-4248-85a7-db4fed85c755" x="0" y="52" width="113" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[TOTAL INTEREST DOCUMENT ]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="d8b8a0cf-3f60-4612-8721-3cf7f658d921" x="113" y="12" width="120" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{CUSTOMMER_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="45b2c6e7-a601-4d44-b4a8-dca33eaff848" x="113" y="22" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{TypeDoc4_Count}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="c00263fa-152f-4b20-b414-ecbc35d768cb" x="113" y="32" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{TypeDoc5_count}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="573d1e77-cc60-4821-81f6-2958bb2f2da4" x="113" y="42" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{TypeDoc6_Count}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="d9ba94a1-0bf7-4ed7-9b85-abc7f2e9be7f" x="113" y="52" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{TypeDoc7_Count}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="39e682ac-fb34-4d4d-9c7b-7a84d0834320" x="173" y="22" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SumTD4}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="39a22526-0c89-4efd-b43e-36856b445431" x="173" y="32" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SumTD5}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="d59e434e-b0e2-4702-b001-1b8e45a83716" x="173" y="42" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SumTD6}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+				<reportElement uuid="5b584995-94f2-4420-a63c-29b67ded5d80" x="173" y="52" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SumTD7}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

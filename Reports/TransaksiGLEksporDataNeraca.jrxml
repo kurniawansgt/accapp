@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="TransaksiGLEksportDataNeraca" language="groovy" pageWidth="740" pageHeight="570" orientation="Landscape" whenNoDataType="BlankPage" columnWidth="720" leftMargin="10" rightMargin="10" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="mop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["11"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yop" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun1fr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun1to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun2fr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun2to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun3fr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="akun3to" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pstbeafr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pstbeato" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="kodebrdfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="kodebrdto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ZZZ"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jdllap" class="java.lang.String">
+		<defaultValueExpression><![CDATA["LAPORAN GL BULANAN"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mopsbl" class="java.lang.String">
+		<defaultValueExpression><![CDATA["10"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yopsbl" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<parameterDescription><![CDATA[""]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT CONCAT('BULAN : ',$P{mop},'/',$P{yop})periode,a.acccode,a.kodeakun,a.accdesc,
+            SUM(saldobulanlalu)sbl,
+            SUM(mutasi-saldobulanlalu)mutasi,
+            SUM(a.mutasi)sbi,
+            a.cmpnyid,concat('Total ',$P{jdllap},'  ')jdlsummary,
+            left(a.acccode,4)grdjdl
+FROM
+(
+SELECT a.acccode,a.accfmttd kodeakun,b.accdesc,
+       CASE WHEN (a.mop=$P{mopsbl} AND a.yop=$P{yopsbl})
+            THEN (a.dbtopenbal-a.crtopenbal) ELSE 0
+       END saldobulanlalu,
+       CASE WHEN (a.mop=$P{mop} AND a.yop=$P{yop})
+            THEN (a.dbtopenbal-a.crtopenbal) ELSE 0
+       END mutasi,a.cmpnyid
+FROM gl_accountbalance a
+INNER JOIN gl_account b
+          ON b.acccode=a.acccode
+WHERE ((cast(a.mop as character)=$P{mop} AND cast(a.yop as character)=$P{yop})
+        OR (cast(a.mop as character)=$P{mopsbl} AND cast(a.yop as character)=$P{yopsbl})
+      )
+      AND (UPPER( (LEFT(a.acccode,IF(LENGTH($P{akun1fr})=0,2,LENGTH($P{akun1fr}))) )  BETWEEN $P{akun1fr} AND $P{akun1to})
+      AND UPPER((MID(a.acccode,3,IF(LENGTH($P{akun2fr})=0,3,LENGTH($P{akun2fr})))) BETWEEN $P{akun2fr} AND $P{akun2to})
+      AND UPPER((MID(a.acccode,6,IF(LENGTH($P{akun3fr})=0,2,LENGTH($P{akun3fr})))) BETWEEN $P{akun3fr} AND $P{akun3to})
+      AND UPPER((MID(a.acccode,8,IF(LENGTH($P{pstbeafr})=0,3,LENGTH($P{pstbeafr})))) BETWEEN $P{pstbeafr} AND $P{pstbeato})
+      AND UPPER((RIGHT(a.acccode,IF(LENGTH($P{kodebrdfr})=0,3,LENGTH($P{kodebrdfr})))) BETWEEN $P{kodebrdfr} AND $P{kodebrdto})
+      AND UPPER((LEFT(a.acccode,IF(LENGTH($P{akun1to})=0,2,LENGTH($P{akun1to}))))  BETWEEN $P{akun1fr} AND $P{akun1to})
+      AND UPPER((MID(a.acccode,3,IF(LENGTH($P{akun2to})=0,3,LENGTH($P{akun2to})))) BETWEEN $P{akun2fr} AND $P{akun2to})
+      AND UPPER((MID(a.acccode,6,IF(LENGTH($P{akun3to})=0,2,LENGTH($P{akun3to})))) BETWEEN $P{akun3fr} AND $P{akun3to})
+      AND UPPER((MID(a.acccode,8,IF(LENGTH($P{pstbeato})=0,3,LENGTH($P{pstbeato})))) BETWEEN $P{pstbeafr} AND $P{pstbeato})
+      AND UPPER((RIGHT(a.acccode,IF(LENGTH($P{kodebrdto})=0,3,LENGTH($P{kodebrdto})))) BETWEEN $P{kodebrdfr} AND $P{kodebrdto}))
+ORDER BY a.acccode
+)a
+where a.saldobulanlalu<>0 or a.mutasi<>0
+GROUP BY a.acccode]]>
+	</queryString>
+	<field name="periode" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="kodeakun" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="sbl" class="java.math.BigDecimal"/>
+	<field name="mutasi" class="java.math.BigDecimal"/>
+	<field name="sbi" class="java.math.BigDecimal"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="jdlsummary" class="java.lang.String"/>
+	<field name="grdjdl" class="java.lang.String"/>
+	<variable name="tsbl" class="java.lang.Double" resetType="Group" resetGroup="jdl" calculation="Sum">
+		<variableExpression><![CDATA[$F{sbl}]]></variableExpression>
+	</variable>
+	<variable name="tmts" class="java.lang.Double" resetType="Group" resetGroup="jdl" calculation="Sum">
+		<variableExpression><![CDATA[$F{mutasi}]]></variableExpression>
+	</variable>
+	<variable name="tsbi" class="java.lang.Double" resetType="Group" resetGroup="jdl" calculation="Sum">
+		<variableExpression><![CDATA[$F{sbi}]]></variableExpression>
+	</variable>
+	<variable name="ssbl" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{sbl}]]></variableExpression>
+	</variable>
+	<variable name="smts" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{mutasi}]]></variableExpression>
+	</variable>
+	<variable name="ssbi" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{sbi}]]></variableExpression>
+	</variable>
+	<group name="jdl" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{grdjdl}]]></groupExpression>
+	</group>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="45" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="461" y="30" width="138" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Halaman  "+$V{PAGE_NUMBER}+" dari "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="323" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="599" y="30" width="119" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="323" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{periode}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="10" width="323" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{jdllap}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="20" width="120" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date Printed ]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="120" y="20" width="203" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="331" y="2" width="130" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo Sampai Dengan Bulan Lalu]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="461" y="2" width="130" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Mutasi]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="591" y="2" width="130" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Saldo Sampai Dengan Bulan Ini]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="120" y="2" width="211" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DESKRIPSI]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="1" width="720" height="1"/>
+			</line>
+			<line>
+				<reportElement x="0" y="12" width="720" height="1"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="2" width="120" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[KODE AKUN]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+			<textField>
+				<reportElement x="0" y="0" width="120" height="10">
+					<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{kodeakun}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="0" width="203" height="10">
+					<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="323" y="0" width="130" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{sbl}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="453" y="0" width="138" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{mutasi}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="591" y="0" width="129" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$F{sbl}!=0 || $F{mutasi}!=0 || $F{sbi}!=0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{sbi}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="17">
+			<textField isBlankWhenNull="true">
+				<reportElement x="43" y="3" width="233" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="3" width="42" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Printer :]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="15" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="323" y="2" width="130" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{ssbl}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="461" y="2" width="130" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{smts}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="591" y="2" width="130" height="10" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Double"><![CDATA[$V{ssbi}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="331" y="1" width="390" height="1"/>
+			</line>
+			<line>
+				<reportElement x="331" y="13" width="390" height="1"/>
+			</line>
+			<textField>
+				<reportElement x="0" y="2" width="323" height="10"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{jdllap}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

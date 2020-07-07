@@ -1,0 +1,768 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="GLJurnalEntry" language="groovy" pageWidth="640" pageHeight="740" orientation="Landscape" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="nobatchfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["3"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="nobatchto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["37"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Operator"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tipebatchfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tipebatchto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["3"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="stsbatchfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["1"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="stsbatchto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["5"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="srceledgrfr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="srceledgrto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrydatefr" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011-01-01"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="entrydateto" class="java.lang.String">
+		<defaultValueExpression><![CDATA["2011-12-31"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT a.batchid,a.btchdesc,a.entrycnt,a.debittot,a.credittot,a.cmpnyid,
+       CASE WHEN a.batchtype='1' THEN 'Entered'
+            WHEN a.batchtype='2' THEN 'Sub Ledger' ELSE 'Generated' END batchtype,
+       CASE WHEN a.batchsts='1' THEN 'Open'
+            WHEN a.batchsts='2' THEN 'Delete'
+            WHEN a.batchsts='3' THEN 'Posted'
+            WHEN a.batchsts='4' THEN 'Prov. Posted' ELSE 'Ready To Post' END batchsts,
+       b.btchentry,cast(CONCAT(a.batchid,b.btchentry) as character)keygljeh,b.jrnldesc,
+       b.btchentrydate,b.mop,b.yop,
+       CONCAT(CAST(b.mop AS CHAR),'/',CAST(b.yop AS CHAR))periode,
+       CASE WHEN b.swreverse=1 AND swedit=1 THEN 'Auto Reversal'
+            ELSE 'Not Auto AutoReversal' END autoreversal,
+       e.srcedesc sourceledger,b.jrnldebit debitbe,b.jrnlcredit creditbe,
+       (b.jrnldebit - b.jrnlcredit)outbalanceby,
+       c.transref,c.transdesc,d.accfmttd,d.accdesc,c.curnccode,
+       c.transamtdbt,c.transamtcrd,LEFT(c.transdate,10)transdate,c.srcetypecode,c.srcelgrcode,
+       c.ratetype,c.rate,c.funcamtdbt,c.funcamtcrd,c.jecomment,
+       CONCAT(c.btchentry,c.journalid,c.transnbr)jedid,
+       if( $P{nobatchfr}='' and  $P{nobatchto}='','ALL Batch Number',
+           concat(if($P{nobatchfr}='',(select cast(batchid as char) from gl_batchlist
+                                       order by batchid ASC limit 1 ),$P{nobatchfr}),
+                   ' To ',
+                  if($P{nobatchto}='',(select cast(batchid as char) from gl_batchlist
+                                       order by batchid Desc limit 1 ),$P{nobatchto})
+                 )
+         )textnobatch,
+       if( $P{tipebatchfr}='' and  $P{tipebatchto}='','ALL Batch Type',
+           concat(
+                  if($P{tipebatchfr}='',
+                     (select case when batchtype='1' then 'Entered'
+                                when batchtype='2' then 'Sub Ledger'
+                                else 'Generated' end tpbatch
+                      from gl_batchlist order by batchtype ASC limit 1),
+                      CASE WHEN $P{tipebatchfr}='1' THEN 'Entered'
+                           WHEN $P{tipebatchfr}='2' THEN 'Sub Ledger'
+                           ELSE 'Generated' END
+                     ),
+                   ' To ',
+                   if($P{tipebatchto}='',
+                     (select case when batchtype='1' then 'Entered'
+                                when batchtype='2' then 'Sub Ledger'
+                                else 'Generated' end tpbatch
+                      from gl_batchlist order by batchtype ASC limit 1),
+                      CASE WHEN $P{tipebatchto}='1' THEN 'Entered'
+                           WHEN $P{tipebatchto}='2' THEN 'Sub Ledger'
+                           ELSE 'Generated' END
+                     )
+                 )
+         )texttipebatch,
+       if( $P{stsbatchfr}='' and  $P{stsbatchto}='','ALL Batch Statue',
+           concat(
+                  if($P{stsbatchfr}='',
+                     (select case when batchsts='1' then 'Open'
+                                  when batchsts='2' then 'Deleted'
+                                  when batchsts='3' then 'Posted'
+                                  when batchsts='3' then 'Prov. Posted'
+                                  else 'Ready To Post' end stbatch
+                      from gl_batchlist order by batchsts ASC limit 1),
+                      case when $P{stsbatchfr}='1' then 'Open'
+                           when $P{stsbatchfr}='2' then 'Deleted'
+                           when $P{stsbatchfr}='3' then 'Posted'
+                           when $P{stsbatchfr}='4' then 'Prov. Posted'
+                           else 'Ready To Post' end
+                     ),
+                   ' To ',
+                   if($P{stsbatchto}='',
+                     (select case when batchsts='1' then 'Open'
+                                  when batchsts='2' then 'Deleted'
+                                  when batchsts='3' then 'Posted'
+                                  when batchsts='3' then 'Prov. Posted'
+                                  else 'Ready To Post' end stbatch
+                      from gl_batchlist order by batchsts ASC limit 1),
+                      case when $P{stsbatchto}='1' then 'Open'
+                           when $P{stsbatchto}='2' then 'Deleted'
+                           when $P{stsbatchto}='3' then 'Posted'
+                           when $P{stsbatchto}='4' then 'Prov. Posted'
+                           else 'Ready To Post' end
+                     )
+                 )
+         )textstsbatch,
+         concat(if($P{srceledgrfr}='',IFNULL((select srceledgr from gl_batchlist
+                                              order by srceledgr ASC limit 1 ),
+                                              'Do not have source code')
+                                              ,$P{srceledgrfr}),
+                   ' To ',
+                  if($P{srceledgrto}='',ifnull((select srceledgr from gl_batchlist
+                                                order by srceledgr Desc limit 1 ),
+                                                'Do not have source code'),
+                                       $P{srceledgrto})
+                 )textsrceledger,
+         concat($P{entrydatefr},' To ',$P{entrydateto})textdateentry
+FROM gl_batchlist a
+INNER JOIN gl_jeh b
+      ON b.batchid=a.batchid
+INNER JOIN gl_jed c
+        ON c.btchentry=b.batchid
+             AND c.journalid=b.btchentry
+LEFT JOIN gl_account d
+        ON d.acccode=c.acccode
+LEFT JOIN gl_sourcelgr e
+       ON e.srcelgrcode=b.srcelgrcode
+            AND e.srcetypecode=b.srcetypecode
+WHERE (a.batchid BETWEEN if($P{nobatchfr}='',
+                            (select batchid from gl_batchlist
+                             order by batchid ASC limit 1),
+                            cast($P{nobatchfr} as Decimal)
+                           )
+                 AND if($P{nobatchto}='',
+                        (select batchid from gl_batchlist
+                         order by batchid Desc limit 1),
+                     cast($P{nobatchto} as Decimal)
+                           )
+       )
+      AND (a.batchtype BETWEEN if($P{tipebatchfr}='','1',$P{tipebatchfr}
+                                 )
+                       AND if($P{tipebatchto}='',(select batchtype from gl_batchlist order by batchtype Desc limit 1),$P{tipebatchto}
+                        )
+       )
+      AND (a.batchsts BETWEEN if($P{stsbatchfr}='','1',$P{stsbatchfr}
+                                 )
+                       AND if($P{stsbatchto}='',(select batchsts from gl_batchlist order by batchsts Desc limit 1),$P{stsbatchto}
+                        )
+          )
+      AND (a.srceledgr BETWEEN if($P{srceledgrfr}='',
+                              ifnull((select srceledgr from gl_batchlist
+                               order by srceledgr Asc limit 1 ),''),
+                                  $P{srceledgrfr})
+                       AND if($P{srceledgrto}='',
+                              ifnull((select srceledgr from gl_batchlist
+                               order by srceledgr Desc limit 1 ),''),
+                            $P{srceledgrto})
+           )
+      AND (b.btchentrydate BETWEEN $P{entrydatefr} AND $P{entrydateto})
+ORDER BY a.batchid,a.srceledgr,a.batchtype,a.batchsts,b.btchentry,b.btchentrydate,
+         c.btchentry,c.journalid,c.transnbr]]>
+	</queryString>
+	<field name="batchid" class="java.math.BigDecimal"/>
+	<field name="btchdesc" class="java.lang.String"/>
+	<field name="entrycnt" class="java.lang.Integer"/>
+	<field name="debittot" class="java.math.BigDecimal"/>
+	<field name="credittot" class="java.math.BigDecimal"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="batchtype" class="java.lang.String"/>
+	<field name="batchsts" class="java.lang.String"/>
+	<field name="btchentry" class="java.math.BigDecimal"/>
+	<field name="keygljeh" class="java.lang.String"/>
+	<field name="jrnldesc" class="java.lang.String"/>
+	<field name="btchentrydate" class="java.sql.Date"/>
+	<field name="mop" class="java.lang.Integer"/>
+	<field name="yop" class="java.lang.Integer"/>
+	<field name="periode" class="java.lang.String"/>
+	<field name="autoreversal" class="java.lang.String"/>
+	<field name="sourceledger" class="java.lang.String"/>
+	<field name="debitbe" class="java.math.BigDecimal"/>
+	<field name="creditbe" class="java.math.BigDecimal"/>
+	<field name="outbalanceby" class="java.math.BigDecimal"/>
+	<field name="transref" class="java.lang.String"/>
+	<field name="transdesc" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="transamtdbt" class="java.math.BigDecimal"/>
+	<field name="transamtcrd" class="java.math.BigDecimal"/>
+	<field name="transdate" class="java.lang.String"/>
+	<field name="srcetypecode" class="java.lang.String"/>
+	<field name="srcelgrcode" class="java.lang.String"/>
+	<field name="ratetype" class="java.lang.String"/>
+	<field name="rate" class="java.math.BigDecimal"/>
+	<field name="funcamtdbt" class="java.math.BigDecimal"/>
+	<field name="funcamtcrd" class="java.math.BigDecimal"/>
+	<field name="jecomment" class="java.lang.String"/>
+	<field name="jedid" class="java.lang.String"/>
+	<field name="textnobatch" class="java.lang.String"/>
+	<field name="texttipebatch" class="java.lang.String"/>
+	<field name="textstsbatch" class="java.lang.String"/>
+	<field name="textsrceledger" class="java.lang.String"/>
+	<field name="textdateentry" class="java.lang.String"/>
+	<variable name="penomoran" class="java.lang.Integer" resetType="Group" resetGroup="GLJEH" calculation="Count">
+		<variableExpression><![CDATA[$F{jedid}.valueOf( $F{jedid} )]]></variableExpression>
+	</variable>
+	<variable name="srcdbt" class="java.math.BigDecimal" resetType="Group" resetGroup="GLJEH" calculation="Sum">
+		<variableExpression><![CDATA[$F{transamtdbt}]]></variableExpression>
+	</variable>
+	<variable name="srccdt" class="java.math.BigDecimal" resetType="Group" resetGroup="GLJEH" calculation="Sum">
+		<variableExpression><![CDATA[$F{transamtcrd}]]></variableExpression>
+	</variable>
+	<variable name="funcdbt" class="java.math.BigDecimal" resetType="Group" resetGroup="GLJEH" calculation="Sum">
+		<variableExpression><![CDATA[$F{funcamtdbt}]]></variableExpression>
+	</variable>
+	<variable name="funccdt" class="java.math.BigDecimal" resetType="Group" resetGroup="GLJEH" calculation="Sum"/>
+	<group name="NOBATCHJURNAL" isStartNewPage="true" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{batchid}]]></groupExpression>
+		<groupHeader>
+			<band height="55">
+				<staticText>
+					<reportElement x="0" y="5" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[BATCH NO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="15" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DEBITS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="35" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TYPE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="25" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CREDITS]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="152" y="5" width="221" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{btchdesc}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="0" y="45" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[STATUS]]></text>
+				</staticText>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="97" y="15" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{debittot}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="97" y="25" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{credittot}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="97" y="35" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{batchtype}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="97" y="45" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{batchsts}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="97" y="5" width="55" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="NOBATCHJURNAL"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{batchid}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<group name="GLJEH" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{keygljeh}]]></groupExpression>
+		<groupHeader>
+			<band height="70">
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="1" width="95" height="10" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ENTRY NO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="11" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[creationDATE]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="21" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[YEAR PERIOD]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="31" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[AUTO REVERSAL]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="41" width="97" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[TYPE]]></text>
+				</staticText>
+				<textField>
+					<reportElement isPrintRepeatedValues="false" x="152" y="1" width="263" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{jrnldesc}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="97" y="21" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{periode}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="96" y="1" width="56" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{btchentry}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="97" y="31" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{autoreversal}]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement isPrintRepeatedValues="false" x="97" y="11" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.util.Date"><![CDATA[$F{btchentrydate}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="97" y="41" width="318" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{sourceledger}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="413" y="30" width="103" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CREDITS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="413" y="20" width="103" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DEBITS]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="413" y="40" width="103" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement>
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[OUT BALANCE BY ]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)">
+					<reportElement isPrintRepeatedValues="false" x="515" y="20" width="87" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{debitbe}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="516" y="30" width="86" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right">
+						<font size="6" isBold="false"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{creditbe}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+					<reportElement isPrintRepeatedValues="false" x="516" y="41" width="86" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{outbalanceby}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement isPrintRepeatedValues="false" x="0" y="66" width="600" height="1" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH" forecolor="#666666"/>
+				</line>
+				<line>
+					<reportElement isPrintRepeatedValues="false" x="0" y="54" width="600" height="1" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH" forecolor="#666666"/>
+				</line>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="0" y="55" width="15" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[NO]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="152" y="55" width="40" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[REF]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="192" y="55" width="56" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DESCRIPTION]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="248" y="55" width="75" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[ACCOUNT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="323" y="55" width="60" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DESCRIPTION]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="383" y="55" width="30" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[CURR.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="413" y="55" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[SOURCE DEBIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="516" y="55" width="86" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[SOURCE CREDIT]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="15" y="55" width="82" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[SOURCE LEDGER]]></text>
+				</staticText>
+				<staticText>
+					<reportElement isPrintRepeatedValues="false" x="97" y="56" width="55" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="6" isBold="true"/>
+					</textElement>
+					<text><![CDATA[DATE]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="20">
+				<line>
+					<reportElement x="0" y="1" width="600" height="1" isRemoveLineWhenBlank="true" printWhenGroupChanges="GLJEH" forecolor="#666666"/>
+				</line>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="413" y="2" width="103" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{srcdbt}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0;(#,##0)">
+					<reportElement x="516" y="2" width="86" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" printWhenGroupChanges="GLJEH"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="6"/>
+					</textElement>
+					<textFieldExpression class="java.math.BigDecimal"><![CDATA[$V{srccdt}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="12" width="600" height="1" isRemoveLineWhenBlank="true" printWhenGroupChanges="GLJEH" forecolor="#666666"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="no">
+		<groupExpression><![CDATA[$F{jedid}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<background>
+		<band/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<pageHeader>
+		<band height="82">
+			<textField>
+				<reportElement mode="Opaque" x="437" y="68" width="106" height="10" backcolor="#FFFFFF"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement mode="Opaque" x="546" y="68" width="53" height="10" backcolor="#FFFFFF"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="20" width="373" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GL BATCH LISTING - FUNCTIONAL CURRENCY ONLY (GLBCHL01)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="30" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH NUMBER]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="0" width="373" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="40" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BATCH TYPE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="50" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[HAVING STATUS OF]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="70" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CREATION DATE]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="97" y="30" width="276" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textnobatch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="40" width="276" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{texttipebatch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="50" width="276" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textstsbatch}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="60" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SOURCE LEDGER]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="97" y="60" width="276" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textsrceledger}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="70" width="276" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{textdateentry}]]></textFieldExpression>
+			</textField>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="97" y="10" width="276" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="10" width="97" height="10"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date Printed]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="2">
+			<line>
+				<reportElement x="0" y="1" width="600" height="1" isRemoveLineWhenBlank="true" forecolor="#666666"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="152" y="1" width="40" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{transref}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="192" y="1" width="56" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{transdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="248" y="1" width="75" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accfmttd}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="323" y="1" width="60" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="383" y="1" width="30" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="413" y="1" width="103" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{transamtdbt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0;(#,##0)" isBlankWhenNull="true">
+				<reportElement x="516" y="1" width="86" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{transamtcrd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="1" width="15" height="10" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.Integer"><![CDATA[$V{penomoran}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="15" y="0" width="82" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{sourceledger}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="0" width="55" height="10"/>
+				<textElement textAlignment="Left">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{transdate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="1" width="600" height="1"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band/>
+	</summary>
+</jasperReport>

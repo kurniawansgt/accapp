@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="voucher_je_rpt" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="15344de2-6119-41e0-b017-dc803095e48a">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="batchid" class="java.lang.String"/>
+	<parameter name="btchentrydate_fr" class="java.lang.String"/>
+	<parameter name="btchentrydate_to" class="java.lang.String"/>
+	<parameter name="btchentry_fr" class="java.lang.String"/>
+	<parameter name="btchentry_to" class="java.lang.String"/>
+	<parameter name="allsourceglcode" class="java.lang.String"/>
+	<parameter name="srcelgrtypecode" class="java.lang.String"/>
+	<parameter name="audituser" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[CALL sp_journal_entry_voucher_print($P{batchid},$P{btchentrydate_fr},$P{btchentrydate_to},$P{btchentry_fr},$P{btchentry_to},$P{allsourceglcode},$P{srcelgrtypecode});]]>
+	</queryString>
+	<field name="transnbr" class="java.math.BigDecimal"/>
+	<field name="RegisterNo" class="java.math.BigDecimal"/>
+	<field name="pembuat" class="java.lang.String"/>
+	<field name="voucherNo" class="java.lang.Object"/>
+	<field name="voucherDate" class="java.sql.Date"/>
+	<field name="pemohon" class="java.lang.String"/>
+	<field name="voucherTipe" class="java.lang.String"/>
+	<field name="acccode" class="java.lang.String"/>
+	<field name="accfmttd" class="java.lang.String"/>
+	<field name="accdesc" class="java.lang.String"/>
+	<field name="DK" class="java.lang.String"/>
+	<field name="nilai" class="java.math.BigDecimal"/>
+	<field name="totD" class="java.math.BigDecimal"/>
+	<field name="totK" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="17233279-9dce-4f99-a8ad-80fee62dbacd" x="83" y="2" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[accfmttd]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="cd3af290-927e-4bdb-897e-9634a7d78670" x="215" y="2" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[accdesc]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="032d0599-70a2-4d16-8788-7e4ddd97cfd6" x="405" y="2" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[nilai]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="50f8bdc3-7027-4c1e-a691-c7a4dad80330" x="0" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{accfmttd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4eb423b2-f900-49e0-b150-567cfe21a047" x="100" y="0" width="355" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{accdesc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="70916272-fd17-4538-b89a-ac2b0d0feabd" x="455" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{nilai}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch">
+			<textField>
+				<reportElement uuid="b3c98c2d-a311-4939-8951-4525955acc91" x="48" y="23" width="487" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{REPORT_SCRIPTLET}.terbilang($F{nilai}.toString())]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

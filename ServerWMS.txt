@@ -1,0 +1,2 @@
+server=178.1.0.226
+database=mb

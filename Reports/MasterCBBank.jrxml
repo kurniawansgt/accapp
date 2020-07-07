@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MasterCBBank" language="groovy" pageWidth="640" pageHeight="740" columnWidth="600" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="156"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" fontName="Arial" fontSize="26" isBold="true" pdfFontName="Helvetica-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<parameter name="banknofr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="banknoto" class="java.lang.String">
+		<defaultValueExpression><![CDATA[" "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="jenisreport" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ADDRESS"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="operator" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Admin"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT CONCAT('BANK CODE : ',iF($P{banknofr}='',(SELECT bankcode FROM cb_bank ORDER BY bankcode ASC LIMIT 1),$P{banknofr}),' TO ',IF($P{banknoto}='',(SELECT bankcode FROM cb_bank ORDER BY bankcode DESC LIMIT 1),$P{banknoto})) jdlbank,a.cmpnyid,
+            a.bankcode,a.bankname,CONCAT(a.address1,' ',address2,' ',a.city,' ',a.state,' ',a.postalcode)alamat,
+            a.bankaccno,a.srceledgr sourcecode,a.rvslsrcecode,a.voidsrcecode,a.curnccode,a.ratetypecode,
+            CONCAT(a.phone1,' ',a.phone2)phone,a.faxno,a.contact,a.comments,
+            CASE WHEN a.dplctcheck=1 THEN 'Duplicate' ELSE 'Not Duplicate' END optdesc,
+            IFNULL(IF(a.bankacccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.bankacccode),a.bankacccode),a.bankacccode) akunbank,
+            IFNULL(IF(a.voidacccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.voidacccode),a.voidacccode),a.voidacccode) akunvoid,
+            IFNULL(IF(a.trnfclracccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.trnfclracccode),a.trnfclracccode),a.trnfclracccode) akuntransfer,
+            IFNULL(IF(a.cashclracccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.cashclracccode),a.cashclracccode),a.cashclracccode) akuncash,
+            IFNULL(IF(a.arclracccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.arclracccode),a.arclracccode),a.arclracccode) akunar,
+            IFNULL(IF(a.apclraccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.apclraccode),a.apclraccode),a.apclraccode) akunap,
+            IFNULL(IF(a.jcclracccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.jcclracccode),a.jcclracccode),a.jcclracccode) akunjob,
+            IFNULL(IF(a.prclracccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.prclracccode),a.prclracccode),a.prclracccode) akunpayroll,
+            IFNULL(IF(a.apbankacccode<>'' ,
+                (SELECT accfmttd FROM  gl_account b WHERE b.acccode=a.apbankacccode),a.apbankacccode),a.apbankacccode) akunpayment
+FROM  cb_bank a
+WHERE (a.bankcode BETWEEN IF($P{banknofr}='',(SELECT bankcode FROM cb_bank ORDER BY bankcode ASC LIMIT 1),$P{banknofr}) AND
+                                               IF($P{banknoto}='',(SELECT bankcode FROM cb_bank ORDER BY bankcode DESC LIMIT 1),$P{banknoto}))]]>
+	</queryString>
+	<field name="jdlbank" class="java.lang.String"/>
+	<field name="cmpnyid" class="java.lang.String"/>
+	<field name="bankcode" class="java.lang.String"/>
+	<field name="bankname" class="java.lang.String"/>
+	<field name="alamat" class="java.lang.String"/>
+	<field name="bankaccno" class="java.lang.String"/>
+	<field name="sourcecode" class="java.lang.String"/>
+	<field name="rvslsrcecode" class="java.lang.String"/>
+	<field name="voidsrcecode" class="java.lang.String"/>
+	<field name="curnccode" class="java.lang.String"/>
+	<field name="ratetypecode" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="faxno" class="java.lang.String"/>
+	<field name="contact" class="java.lang.String"/>
+	<field name="comments" class="java.lang.String"/>
+	<field name="optdesc" class="java.lang.String"/>
+	<field name="akunbank" class="java.lang.String"/>
+	<field name="akunvoid" class="java.lang.String"/>
+	<field name="akuntransfer" class="java.lang.String"/>
+	<field name="akuncash" class="java.lang.String"/>
+	<field name="akunar" class="java.lang.String"/>
+	<field name="akunap" class="java.lang.String"/>
+	<field name="akunjob" class="java.lang.String"/>
+	<field name="akunpayroll" class="java.lang.String"/>
+	<field name="akunpayment" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="45" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Column header" x="481" y="31" width="80" height="10" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" evaluationTime="Report">
+				<reportElement style="Column header" x="561" y="31" width="40" height="10" forecolor="#000000"/>
+				<textElement>
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="136" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CASH BOOK - BANK ACC. MASTER REPORT (]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="22" width="136" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{jdlbank}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="136" y="0" width="102" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{jenisreport}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="10" width="136" height="12"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{cmpnyid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="238" y="0" width="362" height="10"/>
+				<textElement>
+					<font size="6" isBold="true"/>
+				</textElement>
+				<text><![CDATA[)]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="40" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="36" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement style="Column header" x="0" y="4" width="34" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="34" y="4" width="102" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[DESCEIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="136" y="4" width="155" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[ADDRESS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="291" y="4" width="83" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[PHONE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="374" y="4" width="59" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[FAX NO.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="433" y="4" width="68" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CONTACT PERSON]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="501" y="4" width="100" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[COMMENTS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="136" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[BANK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="181" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[VOID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="226" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[TRANSFER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="271" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CASH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="316" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[AR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="361" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[AP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="406" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[JOBS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="451" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[PAYROLL]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="496" y="14" width="45" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[AP BANK]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="0" y="14" width="34" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="34" y="14" width="102" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="136" y="24" width="61" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[BANK ACC. NO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="197" y="24" width="104" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[REVERSAL SOURCE CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="301" y="24" width="100" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[VOID CHECK SOURCE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="401" y="24" width="104" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CURRENCY CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="505" y="24" width="95" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[RATE TYPE CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="541" y="12" width="59" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Bank' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Dupicte Cheq/Ref. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="0" y="25" width="34" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[CODE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="34" y="25" width="102" height="10" isRemoveLineWhenBlank="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Account Code' )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[DESCRIPTION]]></text>
+			</staticText>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="-2" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{jenisreport}.equals( 'Address' )]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="0" y="0" width="34" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="34" y="0" width="102" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="136" y="0" width="155" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{alamat}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="291" y="0" width="83" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="374" y="0" width="59" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{faxno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="433" y="0" width="80" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{contact}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="513" y="0" width="87" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{comments}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="12">
+			<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Bank" )]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="0" y="0" width="34" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="34" y="0" width="102" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="181" y="0" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunvoid}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="226" y="0" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akuntransfer}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="271" y="1" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akuncash}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="316" y="1" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunar}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="361" y="1" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunap}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="406" y="1" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunjob}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="496" y="0" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunpayment}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="451" y="1" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunpayroll}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement style="Detail" x="136" y="0" width="45" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{akunbank}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="541" y="1" width="59" height="10" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{optdesc}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="12">
+			<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="0" y="0" width="34" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankcode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement style="Detail" x="34" y="0" width="102" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="SansSerif" size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{bankname}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="136" y="0" width="63" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{sourcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="199" y="0" width="102" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{rvslsrcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="301" y="0" width="100" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{voidsrcecode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="401" y="0" width="104" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{curnccode}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="505" y="0" width="96" height="10" isPrintWhenDetailOverflows="true">
+					<printWhenExpression><![CDATA[$P{jenisreport}.equals( "Account Code" )]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ratetypecode}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true" pattern="EEEEE dd MMMMM yyyy">
+				<reportElement style="Column header" x="496" y="4" width="105" height="10" forecolor="#000000"/>
+				<textElement textAlignment="Right">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="2" width="600" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="0" y="3" width="100" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[M-04-CB-0001-MCBB]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="136" y="3" width="100" height="10"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<text><![CDATA[Printer : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="236" y="4" width="138" height="10"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$P{operator}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
